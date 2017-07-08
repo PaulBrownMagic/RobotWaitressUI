@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block header %}
+<h1>Navigation</h1>
+<p class="lead">Give LUCIE a target destination</p>
+{% endblock %}
+
+{% block content %}
+<div class="row featurette">
+    <div class="col-lg-4 list-group">
+    {% for waypoint in waypoints -%}
+            <form action="/go_to" method="POST">
+                <input class="btn btn-default btn-group-justified submit list-group-item" type="submit" name="destination" value="WayPoint {{ waypoint }}">
+            </form>
+        {% if loop.index is divisibleby(loop.length//3 + 1) and not loop.last %}
+        </div>
+        <div class="col-lg-4 list-group">
+            {% endif %}
+        {% endfor %}
+        </div>
+</div>
+{% endblock %}

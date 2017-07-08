@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block header %}
+<h1>Menu</h1>
+<p class="lead">Order from LUCIE and she'll bring your sweets right to you.</p>
+{% endblock %}
+
+{% block content %}
+{# Render ordering form including heading and images of menu products #}
+<form action="/order" method="POST">
+  <div class="form-group">
+    {% for item in menu %}
+    <div class="col-md-4 menu">
+      <h2>{{ item['name'] }}</h2>
+      <div class="btn btn-default order_btn  col-md-4"  onclick="change(1, '{{ item['name'] }}')">↑</div>
+      <input id="f {{ item['name'] }}" name="{{ item['name'] }}" type="number" value="0" min="0" max="10" hidden/>
+      <span id="s {{ item['name'] }}" class="order_value col-md-4">0</span>
+      <div class="btn btn-default order_btn  col-md-4" onclick="change(-1, '{{ item['name'] }}')">↓</div>
+      <img src="{{ url_for('static',
+                           filename='images/{}'.format(item['image'])
+                           ) }}"
+           alt="{{ item['name'] }}"
+           title="{{ item['name'] }}" />
+    </div>
+    {% endfor %}
+    <button id="order" type="submit" class="btn btn-default btn-success submit col-md-6">Order</button>
+    <div id="decline" class="btn btn-default btn-danger submit col-md-6" data-toggle="modal" data-target="#declineModal">No Thanks</div>
+  </div>
+ </form>
+
+<!-- Modal -->
+<div class="modal fade" id="declineModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">No Thanks</h4>
+      </div>
+      <div class="modal-body">
+        "Ok, I'll head back to the Kitchen. Call me if you need anything."
+      </div>
+      <div class="modal-footer">
+        <button id="dismiss" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// Vanilla JavaScript (JQuery not yet loaded)
+// Ensure values match because cache
+document.addEventListener("DOMContentLoaded", function(event) {
+{% for item in menu -%}
+  document.getElementById("s {{item['name'] }}").innerHTML = document.getElementById("f {{item['name'] }}").value
+ {% endfor %}
+});
+</script>
+{% endblock %}

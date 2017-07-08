@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block header %}
+<h1>Login</h1>
+<p class="lead">Login to access Admin features</p>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <form action="/login" method="POST">
+        <input id="login_pwd" type="password" name="password" class="form-control" autofocus>
+
+        <table id="pinpad" class="table table-bordered">
+            <tr><td onclick="pwd(7)">7</td><td onclick="pwd(8)">8</td><td onclick="pwd(9)">9</td></tr>
+            <tr><td onclick="pwd(4)">4</td><td onclick="pwd(5)">5</td><td onclick="pwd(6)">6</td></tr>
+            <tr><td onclick="pwd(1)">1</td><td onclick="pwd(2)">2</td><td onclick="pwd(3)">3</td></tr>
+            <tr><td></td><td onclick="pwd(0)">0</td><td></td></tr>
+        </table>
+
+        <button class="btn btn-default submit col-md-12" type="submit">Login</button>
+    </form>
+</div>
+{% endblock %}
