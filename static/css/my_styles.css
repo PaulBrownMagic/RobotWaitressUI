@@ -1,3 +1,10 @@
+/* Big button text everywhere! */
+.submit {
+    font-size: 36px!important;
+    font-weight: 400!important;
+}
+
+/* Menu CSS */
 .menu img {
     width: 100%;
 }
@@ -16,12 +23,7 @@
     border-top: 1px solid #ccc;
 }
 
-
-.submit {
-    font-size: 36px!important;
-    font-weight: 400!important;
-}
-
+/* All Orders View CSS*/
 .Complete {
     color: #fff;
     background-color: #5cb85c;
@@ -51,6 +53,7 @@ tr {
     font-size: 32px;
 }
 
+/* Login CSS*/
 #pinpad {
     text-align:center;
 }

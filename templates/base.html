@@ -31,7 +31,7 @@
         <a href="/all_orders" type="button" class="btn btn-default">All Orders</a>
       </div>
       <div class="btn-group btn-group-lg" role="group">
-        <a href="/go_to" type="button" class="btn btn-default">Go To</a>
+        <a href="/navigation" type="button" class="btn btn-default">Go To</a>
       </div>
     </div>
     {% endif %}
@@ -42,6 +42,7 @@
       </div>
       {% block content %}
       {% endblock %}
+      {% if twitter %}<a href="/twitter" class="btn btn-default submit col-md-12">Take a selfie for Twitter</a>{% endif %}
     </div>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>

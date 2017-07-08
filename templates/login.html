@@ -8,8 +8,14 @@
 {% block content %}
 <div class="row">
     <form action="/login" method="POST">
+        {% if error %}
+        <div class="form-group has-error">
+            <label class="control-label" for="login_pwd">{{ error }}</label>
+            <input id="login_pwd" type="password" name="password" class="form-control" autofocus>
+        </div>
+        {% else %}
         <input id="login_pwd" type="password" name="password" class="form-control" autofocus>
-
+        {% endif %}
         <table id="pinpad" class="table table-bordered">
             <tr><td onclick="pwd(7)">7</td><td onclick="pwd(8)">8</td><td onclick="pwd(9)">9</td></tr>
             <tr><td onclick="pwd(4)">4</td><td onclick="pwd(5)">5</td><td onclick="pwd(6)">6</td></tr>

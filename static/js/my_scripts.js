@@ -1,20 +1,16 @@
-var hiding;
+var hiding;  // Used to log and cancel TimeOut functions
 
-// The function that actually updates the values
 function change(diff, id){
-    var num = parseInt(document.getElementById("f "+id).value);
-    if (num + diff <= 5 &&
-        num + diff >= 0 ){
+    // Update values in menu
+    var formid = "[id='f "+ id + "']"
+    var showid = "[id='s "+ id + "']"
+    var num = parseInt($(formid).val(), 10);
+    if (num + diff <= 5 && num + diff >= 0 ){
         num = num + diff;
-        document.getElementById("f "+id).value = num;
-        document.getElementById("s "+id).innerHTML = num;
+        $(formid).val(num);
+        $(showid).html(num);
     }
     can_order();
-}
-
-function pwd(num){
-    var pswd = $("#login_pwd").val()
-    $("#login_pwd").val(pswd + num)
 }
 
 function can_order() {
@@ -28,12 +24,20 @@ function can_order() {
     }
 }
 
+function pwd(num){
+    // Work the keypad for the login page
+    var pswd = $("#login_pwd").val()
+    $("#login_pwd").val(pswd + num)
+}
+
 function reset_form(){
-    // Reset form values to 0
+    // Reset form values to 0, used in menu
     $(":input[type=number]").val(0);
     $(".order_value").html("0");
     can_order();
 }
+
+// On click functions
 
 // No Thanks button clicked
 $("#decline").click(function(){
@@ -48,10 +52,12 @@ $("#decline").click(function(){
     }});
 });
 
+// Modal from decline closed, cancel timeout
 $('#dismiss').click(function(){
     clearTimeout(hiding);
 })
 
+// User has accepted their order, POST url to set order status to complete
 $(".complete").click(function(){
     var payload = {orderId: $("#orderId").html()}
     $.post({url: "/order_complete", data: payload, success: function(result){
@@ -59,5 +65,5 @@ $(".complete").click(function(){
     }});
 });
 
-// Call on page load
+// Call on page load, make sure menu items are 0
 can_order();

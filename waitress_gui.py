@@ -6,62 +6,74 @@ from flask import Flask, redirect, render_template, request, session
 
 app = Flask(__name__)
 
-PIN = "1111"
+PIN = "1111"  # Not so secure Login password.
+TWITTER = True  # Display link to twitter or not.
 
 
 class Orders:
+    """ Class to handle and log orders, uses a dictionary internally"""
 
     def __init__(self):
-        self.orders = {}
-        self.last_order_id = None
+        self.orders = {}  # Holds the log of orders
+        self.last_order_id = None  # Utility to remember last order key
 
     def add(self, order):
-        timestamp = time.strftime("%H:%M:%S", time.localtime())
+        """ Add an item to the orders record """
+        timestamp = time.strftime("%H:%M:%S", time.localtime())  # Key as time
         item = {'timestamp': timestamp, 'location': navigation.current_location(),
-                'status': "Open", 'items': order}
+                'status': "Open", 'items': order}  # An "order" as a record
         self.last_order_id = timestamp
         self.orders[self.last_order_id] = item
 
     def last_order(self):
+        """ Get the last order record """
         return self.orders[self.last_order_id]
 
     def cancel_order(self, index):
+        """ Set a order's status to Cancelled """
         self.orders[index]['status'] = "Cancelled"
 
     def cancel_last_order(self):
+        """ Set the last order's status to Cancelled """
         self.cancel_order(self.last_order_id)
 
     def complete_order(self, index):
+        """ Set an order's status to Complete """
         self.orders[index]['status'] = "Complete"
 
     def complete_last_order(self):
+        """ Set the last order's status to Complete """
         self.complete_order(self.last_order_id)
 
     def empty(self):
+        """ Check if there are any orders """
         return self.last_order_id is None
 
 
 class Navigation:
+    """ Mostly <TODO>, link to ROS """
 
     def __init__(self):
         self.waypoints = list(range(14))
 
     def go_to(self, location):
+        """ Send command to navigate to given WayPoint """
         print "Going to {}".format(location)
 
     def go_to_hub(self):
+        """ Send command to go to Hub """
         self.go_to("Hub")
 
     def current_location(self):
+        """ Return current location as Pose/WayPoint """
         return "Lost"
 
+
 # User pages, anyone can view.
-
-
 @app.route("/")
 def home_page():
     """ Show the menu and allow a user to place an order """
-    return render_template("home.html", title="LUCIE | Menu", menu=menu)
+    return render_template("home.html", title="LUCIE | Menu", menu=menu, twitter=TWITTER)
 
 
 @app.route("/order", methods=["GET", "POST"])
@@ -72,30 +84,39 @@ def order_page():
         orders.add(request.form)
     elif orders.empty():
         return redirect("/all_orders", code=302)
-    return render_template("order.html", title="LUCIE | Order", order=orders.last_order())
+    return render_template("order.html", title="LUCIE | Order", order=orders.last_order(), twitter=TWITTER)
 
 
 @app.route("/deliver/<orderId>")
 def deliver_page(orderId):
     """ Show when making a delivery, start timeout at WayPoint location """
     navigation.go_to(orders.orders[orderId]['location'])
-    return render_template("delivery.html", title="LUCIE | Delivery", order=orders.orders[orderId])
+    return render_template("delivery.html", title="LUCIE | Delivery", order=orders.orders[orderId], twitter=TWITTER)
+
+
+@app.route("/twitter")
+def twitter_page():
+    """ Show LUCIE's twitter feed, run with Twitter 'selfie' program. """
+    return render_template("twitter.html", title="LUCIE | Twitter")
 
 
 # Admin/Staff only pages
 @app.route('/login', methods=['GET', 'POST'])
 def login_page():
-    if request.method == 'POST':
+    """ Login User, requires a PIN code, grants admin privileges """
+    error_msg = None
+    if request.method == 'POST':  # Form has been submitted
         if request.form['password'] == PIN:
             session['logged_in'] = True
-            return redirect("/", code=302)
+            return redirect("/", code=302)  # Logged in, send to home
         else:
-            error = "Incorrect password"
-    return render_template("login.html", title="LUCIE | Login")
+            error_msg = "Incorrect PIN"  # Not logged in
+    return render_template("login.html", title="LUCIE | Login", error=error_msg)
 
 
 @app.route("/all_orders")
 def all_orders_page():
+    """ Give an overview of all orders placed, allows admin to load past orders """
     if not session or not session['logged_in']:
         return redirect("/", code=302)
     else:
@@ -104,17 +125,20 @@ def all_orders_page():
 
 @app.route("/order/<orderId>")
 def order_id_page(orderId):
+    """ View an order given its ID (timestamp) """
     if not session or not session['logged_in']:
         return redirect("/", code=302)
     try:
-        order = orders.orders[orderId]
-    except:
+        order = orders.orders[orderId]  # Order exists
+    except KeyError:
+        # Order doesn't exist, other errors will still raise
         return redirect("/all_orders", code=302)
     return render_template("order.html", title="LUCIE | Order", order=order, orderID=orderId)
 
 
-@app.route("/go_to")
+@app.route("/navigation")
 def go_to_page():
+    """ Allows admin to tell LUCIE to go to a WayPoint """
     if not session or not session['logged_in']:
         return redirect("/", code=302)
     return render_template("go_to.html", title="LUCIE | Navigation", waypoints=navigation.waypoints)
@@ -123,12 +147,14 @@ def go_to_page():
 # Non-User urls: Handling data and navigation, hence all set to POST
 @app.route("/cancel_order", methods=["POST"])
 def cancel_order():
+    """ Set order status to Cancelled """
     orders.cancel_order(request.form['orderId'])
-    return redirect("/", code=302)
+    return redirect("/", code=302)  # Redirect back home as per user intention.
 
 
 @app.route("/order_complete", methods=["POST"])
 def complete_order():
+    """ Set order status to Complete, AJAX only call as no clear user intent."""
     orders.complete_order(request.form['orderId'])
     return ""  # Must return a string for Flask
 
@@ -142,16 +168,19 @@ def return_to_hub():
 
 @app.route("/go_to", methods=["POST"])
 def go_to():
+    """ Send LUCIE to a given destination, called in "/navigation" page """
     navigation.go_to(request.form['destination'])
-    return redirect("/", code=302)  # Must return a string for Flask
+    return redirect("/", code=302)
 
 
 if __name__ == "__main__":
     # Load in the menu
     with open("menu.json") as menu_file:
         menu = json.load(menu_file)['items']
+    # Setup orders and navigation interfaces
     orders = Orders()
     navigation = Navigation()
     # Run the app
     app.secret_key = os.urandom(12)  # For sessions
-    app.run(debug=True)
+    app.run(debug=True)  # Debug only
+    # app.run()  # Production
