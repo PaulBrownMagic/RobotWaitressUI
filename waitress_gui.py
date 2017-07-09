@@ -181,6 +181,6 @@ if __name__ == "__main__":
     orders = Orders()
     navigation = Navigation()
     # Run the app
-    app.secret_key = os.urandom(12)  # For sessions
-    app.run(debug=True)  # Debug only
-    # app.run()  # Production
+    app.secret_key = os.urandom(12)  # For sessions, different on each run
+    # app.run(debug=True)  # Debug only
+    app.run(host='0.0.0.0', port="8090")  # Production
