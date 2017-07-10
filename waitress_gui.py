@@ -1,7 +1,8 @@
+#!/usr/bin/env python
 import json
 import os
 import time
-
+import roslib
 from flask import Flask, redirect, render_template, request, session
 from navigation import Navigation
 
@@ -66,14 +67,14 @@ def order_page():
         orders.add(request.form)
     elif orders.empty():
         return redirect("/all_orders", code=302)
-    return render_template("order.html", title="LUCIE | Order", order=orders.last_order(), twitter=TWITTER)
+    return render_template("order.html", title="LUCIE | Order", order=orders.last_order())
 
 
 @app.route("/deliver/<orderId>")
 def deliver_page(orderId):
     """ Show when making a delivery, start timeout at WayPoint location """
     navigation.go_to(orders.orders[orderId]['location'])
-    return render_template("delivery.html", title="LUCIE | Delivery", order=orders.orders[orderId], twitter=TWITTER)
+    return render_template("delivery.html", title="LUCIE | Delivery", order=orders.orders[orderId])
 
 
 @app.route("/twitter")
@@ -157,12 +158,13 @@ def go_to():
 
 if __name__ == "__main__":
     # Load in the menu
-    with open("menu.json") as menu_file:
+    menu_json = os.path.join(roslib.packages.get_pkg_dir('waitress_ui'), "scripts/menu.json")
+    with open(menu_json) as menu_file:
         menu = json.load(menu_file)['items']
     # Setup orders and navigation interfaces
     orders = Orders()
-    navigation = Navigation()
+    navigation = Navigation('WayPoint 1')
     # Run the app
     app.secret_key = os.urandom(12)  # For sessions, different on each run
-    # app.run(debug=True)  # Debug only
-    app.run(host='0.0.0.0', port="8090")  # Production
+    app.run(debug=True, host='0.0.0.0', port=os.environ.get("PORT", 5000), processes=1)  # Debug only
+    # app.run(host='0.0.0.0', port=os.environ.get("PORT", 5000), processes=1)  # Production
