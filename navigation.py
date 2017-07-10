@@ -1,5 +1,6 @@
 import subprocess
 
+
 class Navigation(object):
     """ Mostly <TODO>, link to ROS """
 
@@ -13,16 +14,22 @@ class Navigation(object):
     def go_to(self, location):
         """ Send command to navigate to given WayPoint """
         self.target = location.replace(" ", "")
-        print "Going to", self.target
+        print "[NAV] Going to", self.target
         # Send goal to action server
-        reply = subprocess.check_output(["rosrun", "topological_navigation", "nav_client.py", self.target])
+        try:
+            reply = subprocess.check_output(
+                ["rosrun", "topological_navigation", "nav_client.py", self.target])
+        except:
+            reply = "False"
         # Parse result
         if 'True' in reply:
             self.last_location = self.target
             self.target = None
+            print "[NAV] Arrived at", self.target
         else:
-            print "ERROR: Couldn't reach", self.target
+            print "[NAV] ERROR: Couldn't reach", self.target
         self.in_transit = False
+        print self.last_location
 
     def go_to_hub(self):
         """ Send command to go to Hub """
@@ -34,7 +41,5 @@ class Navigation(object):
         if not self.in_transit:
             location = self.last_location
         else:
-            location = "Travelling from {0} to {1}".format(self.last_location, self.target)
+            location = "Between {0} and {1}".format(self.last_location, self.target)
         return location
-
-
