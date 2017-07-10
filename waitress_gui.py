@@ -3,6 +3,7 @@ import os
 import time
 
 from flask import Flask, redirect, render_template, request, session
+from navigation import Navigation
 
 app = Flask(__name__)
 
@@ -10,7 +11,7 @@ PIN = "1111"  # Not so secure Login password.
 TWITTER = True  # Display link to twitter or not.
 
 
-class Orders:
+class Orders(object):
     """ Class to handle and log orders, uses a dictionary internally"""
 
     def __init__(self):
@@ -48,25 +49,6 @@ class Orders:
     def empty(self):
         """ Check if there are any orders """
         return self.last_order_id is None
-
-
-class Navigation:
-    """ Mostly <TODO>, link to ROS """
-
-    def __init__(self):
-        self.waypoints = list(range(14))
-
-    def go_to(self, location):
-        """ Send command to navigate to given WayPoint """
-        print "Going to {}".format(location)
-
-    def go_to_hub(self):
-        """ Send command to go to Hub """
-        self.go_to("Hub")
-
-    def current_location(self):
-        """ Return current location as Pose/WayPoint """
-        return "Lost"
 
 
 # User pages, anyone can view.
