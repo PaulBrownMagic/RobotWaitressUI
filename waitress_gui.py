@@ -1,10 +1,13 @@
 #!/usr/bin/env python
+import actionlib
 import json
 import os
 import time
 import roslib
+import rospy
+import sys
+import topological_navigation.msg
 from flask import Flask, redirect, render_template, request, session
-from navigation import Navigation
 
 app = Flask(__name__)
 
@@ -156,6 +159,52 @@ def go_to():
     return redirect("/", code=302)
 
 
+class Navigation(object):
+    
+    def __init__(self, origin):
+        self.waypoints = list(range(14))
+        self.hub = origin.replace(" ", "")
+        self.last_location = self.hub
+        self.target = None
+        self.in_transit = False
+        # Rospy
+        rospy.on_shutdown(self.clear_goals)
+        self.client = actionlib.SimpleActionClient('topological_navigation',
+                                                   topological_navigation.msg.GotoNodeAction)
+        self.client.wait_for_server()
+        rospy.loginfo("[NAV] ... Init done")
+
+    def go_to(self, location):
+        """ Send command to navigate to given WayPoint """
+        navgoal = topological_navigation.msg.GotoNodeGoal()
+        self.target = location.replace(" ", "")
+        navgoal.target = self.target
+        print "Going to", self.target
+        # Send goal to action server
+        #reply = subprocess.check_output(["rosrun", "topological_navigation", "nav_client.py", self.target])
+        self.client.send_goal(navgoal)
+        # Parse result
+        self.client.wait_for_result()
+        print self.client.get_result()
+        self.in_transit = False
+
+    def go_to_hub(self):
+        """ Send command to go to Hub """
+        self.go_to(self.hub)
+
+    def current_location(self):
+        """ Return current location as Pose/WayPoint """
+        location = "Lost"
+        if not self.in_transit:
+            location = self.last_location
+        else:
+            location = "Travelling from {0} to {1}".format(self.last_location, self.target)
+        return location
+
+    def clear_goals(self):
+        self.client.cancel_all_goals()
+
+
 if __name__ == "__main__":
     # Load in the menu
     menu_json = os.path.join(roslib.packages.get_pkg_dir('waitress_ui'), "scripts/menu.json")
@@ -163,8 +212,11 @@ if __name__ == "__main__":
         menu = json.load(menu_file)['items']
     # Setup orders and navigation interfaces
     orders = Orders()
-    navigation = Navigation('WayPoint 1')
+    rospy.init_node('waitress_nav')
+    navigation = Navigation('WayPoint1')
     # Run the app
     app.secret_key = os.urandom(12)  # For sessions, different on each run
     app.run(debug=True, host='0.0.0.0', port=os.environ.get("PORT", 5000), processes=1)  # Debug only
     # app.run(host='0.0.0.0', port=os.environ.get("PORT", 5000), processes=1)  # Production
+
+    
