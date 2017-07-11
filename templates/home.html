@@ -7,15 +7,16 @@
 
 {% block content %}
 {# Render ordering form including heading and images of menu products #}
+<div class="row form-group">
 <form action="/order" method="POST">
-  <div class="form-group">
+
     {% for item in menu %}
-    <div class="col-md-4 menu">
+    <div class="col-md-4 col-sm-4 menu">
       <h2>{{ item['name'] }}</h2>
-      <div class="btn btn-default order_btn  col-md-4"  onclick="change(1, '{{ item['name'] }}')">↑</div>
+      <div class="btn btn-default order_btn  col-md-4 col-sm-4"  onclick="change(1, '{{ item['name'] }}')">↑</div>
       <input id="f {{ item['name'] }}" name="{{ item['name'] }}" type="number" value="0" min="0" max="10" hidden/>
-      <span id="s {{ item['name'] }}" class="order_value col-md-4">0</span>
-      <div class="btn btn-default order_btn  col-md-4" onclick="change(-1, '{{ item['name'] }}')">↓</div>
+      <span id="s {{ item['name'] }}" class="order_value col-md-4 col-sm-4">0</span>
+      <div class="btn btn-default order_btn  col-md-4 col-sm-4" onclick="change(-1, '{{ item['name'] }}')">↓</div>
       <img src="{{ url_for('static',
                            filename='images/{}'.format(item['image'])
                            ) }}"
@@ -23,11 +24,16 @@
            title="{{ item['name'] }}" />
     </div>
     {% endfor %}
-    <button id="order" type="submit" class="btn btn-default btn-success submit col-md-6">Order</button>
-    <div id="decline" class="btn btn-default btn-danger submit col-md-6" data-toggle="modal" data-target="#declineModal">No Thanks</div>
-  </div>
+    <button id="order" type="submit" class="btn btn-default btn-success submit col-md-6 col-sm-6">Order</button>
+    <div id="decline" class="btn btn-default btn-danger submit col-md-6 col-sm-6" data-toggle="modal" data-target="#declineModal">No Thanks</div>
+
  </form>
-  {% if twitter %}<a href="/twitter" class="btn btn-default submit col-md-12">Take a selfie for Twitter</a>{% endif %}
+ </div>
+ <hr class="featurette-divider">
+ <div class="row">
+  {% if twitter %}
+  <a href="/twitter" class="btn btn-default submit col-md-12 col-sm-12">Take a selfie for Twitter</a>{% endif %}
+ </div>
 <!-- Modal -->
 <div class="modal fade" id="declineModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
   <div class="modal-dialog" role="document">
