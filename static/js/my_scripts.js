@@ -16,7 +16,7 @@ function change(diff, id){
 function can_order() {
     // Disable order button when all values are 0
     var max = $(":input[type=number]").map(function(){ return this.value }).get().sort().reverse()[0]
-    if (max == 0){
+    if (max == 0){  // max ordered is 0, therefore all values are 0
         $('#order').prop('disabled', true);
     }
     else {
@@ -30,21 +30,12 @@ function pwd(num){
     $("#login_pwd").val(pswd + num)
 }
 
-function reset_form(){
-    // Reset form values to 0, used in menu
-    $(":input[type=number]").val(0);
-    $(".order_value").html("0");
-    can_order();
-}
 
 // On click functions
-
 // No Thanks button clicked
 $("#decline").click(function(){
-    // Reset form values to 0
-    reset_form();
     // Time out Modal that pops up, it'll hide. Also return to hub called
-    $.post({url: "return_to_hub", success: function(result){
+    $.ajax({type: 'POST', url: "/go_to_random", success: function(result){
         hiding = window.setTimeout(function () {
             $("#declineModal").modal("hide");
             $(location).attr('href',"/");
@@ -60,7 +51,7 @@ $('#dismiss').click(function(){
 // User has accepted their order, POST url to set order status to complete
 $(".complete").click(function(){
     var payload = {orderId: $("#orderId").html()}
-    $.post({url: "/order_complete", data: payload, success: function(result){
+    $.ajax({type: 'POST', url: "/order_complete", data: payload, success: function(result){
         $(location).attr('href',"/");
     }});
 });
