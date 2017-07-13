@@ -32,10 +32,8 @@ class Navigation(object):
         result = self.client.get_result()
         if "True" in result:
             self.last_location = self.target
-            self.in_transit = 0
             self.target = "None"
-        else:
-            self.in_transit = 0
+        self.in_transit = False
         print "[NAV]", result
 
     def go_to_hub(self):
