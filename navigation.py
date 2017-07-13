@@ -1,5 +1,3 @@
-from multiprocessing import Array, Value
-
 import actionlib
 import rospy
 import topological_navigation.msg
@@ -10,11 +8,9 @@ class Navigation(object):
     def __init__(self, origin, num_of_waypoints):
         self.waypoints = list(range(1, num_of_waypoints + 1))
         self.hub = origin.replace(" ", "")
-        self.last_location = Array('c', "WayPoint999")  # Shared memory between processes
-        self.target = Array('c', "WayPoint999")  # C-Types t/f Character array,
-        self.in_transit = Value('i', 0)  # and 0 for False. Set to WayPoint999 for length of Array
-        self.last_location.value = self.hub
-        self.target.value = "None"
+        self.last_location = self.hub
+        self.target = None
+        self.in_transit = False
         # Rospy
         rospy.on_shutdown(self.clear_goals)
         self.client = actionlib.SimpleActionClient('topological_navigation',
@@ -24,22 +20,20 @@ class Navigation(object):
 
     def go_to(self, location):
         """ Send command to navigate to given WayPoint """
-        self.in_transit.value = 1
+        self.in_transit = True
         navgoal = topological_navigation.msg.GotoNodeGoal()
-        self.target.value = location.replace(" ", "")
-        navgoal.target = self.target.value
-        print "[NAV] Going to", self.target.value
+        self.target = location.replace(" ", "")
+        navgoal.target = self.target
+        print "[NAV] Going to", self.target
         # Send goal to action server
         self.client.send_goal(navgoal)
         # Parse result
         self.client.wait_for_result()
         result = self.client.get_result()
         if "True" in result:
-            self.last_location.value = self.target.value
-            self.in_transit.value = 0
-            self.target.value = "None"
-        else:
-            self.in_transit.value = 0
+            self.last_location = self.target
+            self.target = "None"        
+        self.in_transit = False
         print "[NAV]", result
 
     def go_to_hub(self):
@@ -49,11 +43,10 @@ class Navigation(object):
     def current_location(self):
         """ Return current location as Pose/WayPoint """
         location = "Lost"
-        if self.in_transit.value == 0:
-            location = self.last_location.value
+        if not self.in_transit:
+            location = self.last_location
         else:
-            location = self.target.value
-        print "[NAV] I'm at", location
+            location = self.target
         return location
 
     def clear_goals(self):
