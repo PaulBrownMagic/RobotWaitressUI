@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import json
 import os
-from multiprocessing import Process
 from random import choice
 
 import roslib
@@ -40,7 +39,7 @@ def order_page():
     if request.method == "POST":
         # Must log order before nav for correnct location
         orders.add(request.form, navigation.current_location())
-        async_go_to_hub()
+        navigation.go_to_hub()
     elif orders.empty():
         return redirect("/all_orders", code=302)
     return render_template("order.html", title="LUCIE | Order", order=orders.last_order())
@@ -49,7 +48,7 @@ def order_page():
 @app.route("/deliver/<orderId>")
 def deliver_page(orderId):
     """ Show when making a delivery, start timeout at WayPoint location """
-    async_go_to(orders.orders[orderId]['location'])
+    navigation.go_to(orders.orders[orderId]['location'])
     return render_template("delivery.html", title="LUCIE | Delivery", order=orders.orders[orderId])
 
 
@@ -125,14 +124,14 @@ def complete_order():
 def return_to_hub():
     """ Called via AJAX to make LUCIE return to the hub """
     # Run navigation in parallel to not delay UI
-    async_go_to_hub()
+    navigation.go_to_hub()
     return ""  # Must return a string for Flask
 
 
 @app.route("/go_to", methods=["POST"])
 def go_to():
     """ Send LUCIE to a given destination, called in "/navigation" page """
-    async_go_to(request.form['destination'])
+    navigation.go_to(request.form['destination'])
     return redirect("/", code=302)
 
 
@@ -144,23 +143,10 @@ def go_to_random():
     """
     if WONDERING_MODE:
         destination = "WayPoint{}".format(choice(navigation.waypoints))
-        async_go_to(destination)
+        navigation.go_to(destination)
     else:
-        async_go_to_hub()
+        navigation.go_to_hub()
     return redirect("/", code=302)
-
-
-# Utility functions
-def async_go_to(destination):
-    """ Run navigation to goal in parallel to not block UI """
-    p = Process(target=navigation.go_to, args=(destination,))
-    p.start()
-
-
-def async_go_to_hub():
-    """ Run navigation to hub in parallel to not block UI """
-    p = Process(target=navigation.go_to_hub)
-    p.start()
 
 
 # Run program
