@@ -1,36 +1,45 @@
 #!/usr/bin/env python
-import actionlib
 import json
 import os
-import time
+from multiprocessing import Process
+from random import choice
+
 import roslib
 import rospy
-import sys
-import topological_navigation.msg
 from flask import Flask, redirect, render_template, request, session
+from navigation import Navigation
 from orders import Orders
 
-app = Flask(__name__)
-
-HUB = 'WayPoint1'
+# Constants
+HUB = 'WayPoint1'  # Kitchen/Food source
+NUMBER_OF_WAYPOINTS = 14
+ONE_MACHINE = True  # Only working with LUCIE, no login for admin features
 PIN = "1111"  # Not so secure Login password.
-TWITTER = True  # Display link to twitter or not.
+WONDERING_MODE = True  # Randomly visit WayPoints when looking for an order
+TWITTER = True  # Display link to twitter or not. Use with selfie program.
 
-# User pages, anyone can view.
+# Make the app!
+app = Flask(__name__)
 
 
 @app.route("/")
 def home_page():
     """ Show the menu and allow a user to place an order """
+    if ONE_MACHINE:  # Auto-login, for convenience when using just LUCIE
+        session['logged_in'] = True
     return render_template("home.html", title="LUCIE | Menu", menu=menu, twitter=TWITTER)
 
 
 @app.route("/order", methods=["GET", "POST"])
 def order_page():
-    """ Show when an order is received, take to the hub."""
+    """ Displays last order.
+
+    Show when an order is received, navigate to the hub.
+    """
     if request.method == "POST":
-        orders.add(request.form)
-        return_to_hub()
+        # Must log order before nav for correnct location
+        orders.add(request.form, navigation.current_location())
+        async_go_to_hub()
     elif orders.empty():
         return redirect("/all_orders", code=302)
     return render_template("order.html", title="LUCIE | Order", order=orders.last_order())
@@ -39,7 +48,7 @@ def order_page():
 @app.route("/deliver/<orderId>")
 def deliver_page(orderId):
     """ Show when making a delivery, start timeout at WayPoint location """
-    navigation.go_to(orders.orders[orderId]['location'])
+    async_go_to(orders.orders[orderId]['location'])
     return render_template("delivery.html", title="LUCIE | Delivery", order=orders.orders[orderId])
 
 
@@ -74,7 +83,10 @@ def all_orders_page():
 
 @app.route("/order/<orderId>")
 def order_id_page(orderId):
-    """ View an order given its ID (timestamp) """
+    """ View an order given its ID (timestamp)
+
+    No navigation, unlike the "/order" route.
+    """
     if not session or not session['logged_in']:
         return redirect("/", code=302)
     try:
@@ -111,63 +123,46 @@ def complete_order():
 @app.route("/return_to_hub", methods=["POST"])
 def return_to_hub():
     """ Called via AJAX to make LUCIE return to the hub """
-    navigation.go_to_hub()  # rospy.loginfo()
+    # Run navigation in parallel to not delay UI
+    async_go_to_hub()
     return ""  # Must return a string for Flask
 
 
 @app.route("/go_to", methods=["POST"])
 def go_to():
     """ Send LUCIE to a given destination, called in "/navigation" page """
-    navigation.go_to(request.form['destination'])
+    async_go_to(request.form['destination'])
     return redirect("/", code=302)
 
 
-class Navigation(object):
-    
-    def __init__(self, origin):
-        self.waypoints = list(range(14))
-        self.hub = origin.replace(" ", "")
-        self.last_location = self.hub
-        self.target = None
-        self.in_transit = False
-        # Rospy
-        rospy.on_shutdown(self.clear_goals)
-        self.client = actionlib.SimpleActionClient('topological_navigation',
-                                                   topological_navigation.msg.GotoNodeAction)
-        self.client.wait_for_server()
-        rospy.loginfo("[NAV] ... Init done")
+@app.route("/go_to_random", methods=["POST"])
+def go_to_random():
+    """ Send LUCIE to a random WayPoint
 
-    def go_to(self, location):
-        """ Send command to navigate to given WayPoint """
-        navgoal = topological_navigation.msg.GotoNodeGoal()
-        self.target = location.replace(" ", "")
-        navgoal.target = self.target
-        print "Going to", self.target
-        # Send goal to action server
-        #reply = subprocess.check_output(["rosrun", "topological_navigation", "nav_client.py", self.target])
-        self.client.send_goal(navgoal)
-        # Parse result
-        self.client.wait_for_result()
-        print self.client.get_result()
-        self.in_transit = False
-
-    def go_to_hub(self):
-        """ Send command to go to Hub """
-        self.go_to(self.hub)
-
-    def current_location(self):
-        """ Return current location as Pose/WayPoint """
-        location = "Lost"
-        if not self.in_transit:
-            location = self.last_location
-        else:
-            location = "Travelling from {0} to {1}".format(self.last_location, self.target)
-        return location
-
-    def clear_goals(self):
-        self.client.cancel_all_goals()
+    Useful when looking for orders in an unintelligent manner
+    """
+    if WONDERING_MODE:
+        destination = "WayPoint{}".format(choice(navigation.waypoints))
+        async_go_to(destination)
+    else:
+        async_go_to_hub()
+    return redirect("/", code=302)
 
 
+# Utility functions
+def async_go_to(destination):
+    """ Run navigation to goal in parallel to not block UI """
+    p = Process(target=navigation.go_to, args=(destination,))
+    p.start()
+
+
+def async_go_to_hub():
+    """ Run navigation to hub in parallel to not block UI """
+    p = Process(target=navigation.go_to_hub)
+    p.start()
+
+
+# Run program
 if __name__ == "__main__":
     # Load in the menu
     try:
@@ -178,12 +173,11 @@ if __name__ == "__main__":
         menu = json.load(menu_file)['items']
     # Setup orders and navigation interfaces
     rospy.init_node('waitress_nav')
-    navigation = Navigation(HUB)
-    orders = Orders(navigation)
+    navigation = Navigation(HUB, NUMBER_OF_WAYPOINTS)
+    orders = Orders()
+    rospy.loginfo("[WAITRESS] UI Launched")
     # Run the app
     app.secret_key = os.urandom(12)  # For sessions, different on each run
     app.run(debug=True, host='0.0.0.0', port=os.environ.get(
         "PORT", 5000), processes=1)  # Debug only
     # app.run(host='0.0.0.0', port=os.environ.get("PORT", 5000), processes=1)  # Production
-
-    
