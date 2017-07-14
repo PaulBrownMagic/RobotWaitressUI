@@ -162,7 +162,7 @@ if __name__ == "__main__":
     rospy.init_node('waitress_nav')
     navigation = Navigation(HUB, NUMBER_OF_WAYPOINTS)
     orders = Orders()
-    rospy.loginfo("[WAITRESS] UI Launched")
+    rospy.loginfo("[WAITRESS] UI Launched at http://0.0.0.0:5000")
     # Run the app
     app.secret_key = os.urandom(12)  # For sessions, different on each run
     app.run(debug=True, host='0.0.0.0', port=os.environ.get(

@@ -30,7 +30,9 @@ class Navigation(object):
         # Parse result
         self.client.wait_for_result()
         result = self.client.get_result()
-        if "True" in result:
+        if result is None:
+            self.clear_goals()
+        elif "True" in result:
             self.last_location = self.target
             self.target = "None"
         self.in_transit = False
