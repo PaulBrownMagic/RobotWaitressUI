@@ -9,9 +9,7 @@
 <div class="row featurette">
     <div class="col-lg-4 list-group">
     {% for waypoint in waypoints -%}
-            <form action="/go_to" method="POST">
-                <input class="btn btn-default btn-group-justified submit list-group-item" type="submit" name="destination" value="WayPoint {{ waypoint }}">
-            </form>
+            <div class="btn btn-default btn-group-justified submit list-group-item" onclick="nav_to('WayPoint {{ waypoint }}')">WayPoint {{ waypoint }}</div>
         {% if loop.index is divisibleby(loop.length//3 + 1) and not loop.last %}
         </div>
         <div class="col-lg-4 list-group">
@@ -19,4 +17,19 @@
         {% endfor %}
         </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+var socket;
+$(document).ready(function(){
+    namespace = '/io';
+    socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+});
+function nav_to(waypoint){
+    socket.emit('go_to', {destination: waypoint});
+    $(location).attr('href',"/");
+};
+</script>
 {% endblock %}

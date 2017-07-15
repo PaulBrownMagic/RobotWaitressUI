@@ -1,4 +1,8 @@
 var hiding;  // Used to log and cancel TimeOut functions
+// Modal from decline closed, cancel timeout
+$('#dismiss').click(function(){
+    clearTimeout(hiding);
+})
 
 function change(diff, id){
     // Update values in menu
@@ -23,38 +27,11 @@ function can_order() {
         $('#order').prop('disabled', false);
     }
 }
+// Call on page load, make sure menu items are 0
+can_order();
 
 function pwd(num){
     // Work the keypad for the login page
     var pswd = $("#login_pwd").val()
     $("#login_pwd").val(pswd + num)
 }
-
-
-// On click functions
-// No Thanks button clicked
-$("#decline").click(function(){
-    // Time out Modal that pops up, it'll hide. Also return to hub called
-    $.ajax({type: 'POST', url: "/go_to_random", success: function(result){
-        hiding = window.setTimeout(function () {
-            $("#declineModal").modal("hide");
-            $(location).attr('href',"/");
-        }, 5000);
-    }});
-});
-
-// Modal from decline closed, cancel timeout
-$('#dismiss').click(function(){
-    clearTimeout(hiding);
-})
-
-// User has accepted their order, POST url to set order status to complete
-$(".complete").click(function(){
-    var payload = {orderId: $("#orderId").html()}
-    $.ajax({type: 'POST', url: "/order_complete", data: payload, success: function(result){
-        $(location).attr('href',"/");
-    }});
-});
-
-// Call on page load, make sure menu items are 0
-can_order();
