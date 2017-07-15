@@ -1,6 +1,9 @@
+from random import choice
+
 import actionlib
 import rospy
 import topological_navigation.msg
+from config import WONDERING_MODE
 
 
 class Navigation(object):
@@ -41,6 +44,17 @@ class Navigation(object):
     def go_to_hub(self):
         """ Send command to go to Hub """
         self.go_to(self.hub)
+
+    def go_to_random(self):
+        """ Send LUCIE to a random WayPoint
+
+        Useful when looking for orders in an unintelligent manner
+        """
+        if WONDERING_MODE:
+            destination = "WayPoint{}".format(choice(self.waypoints))
+            self.go_to(destination)
+        else:
+            self.go_to_hub()
 
     def current_location(self):
         """ Return current location as Pose/WayPoint """

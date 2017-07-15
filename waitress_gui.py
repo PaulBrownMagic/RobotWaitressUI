@@ -1,24 +1,16 @@
 #!/usr/bin/env python
 import json
 import os
-from random import choice
 
 from flask import Flask, redirect, render_template, request, session
 from flask_socketio import SocketIO
 
 import roslib
 import rospy
+from config import *
 from iwebsocket import SocketHelper, background_thread
 from navigation import Navigation
 from orders import Orders
-
-# Constants MOVE TO CONFIG.py along with MENU
-HUB = 'WayPoint1'  # Kitchen/Food source
-NUMBER_OF_WAYPOINTS = 14
-ONE_MACHINE = True  # Only working with LUCIE, no login for admin features
-PIN = "1111"  # Not so secure Login password.
-WONDERING_MODE = True  # Randomly visit WayPoints when looking for an order
-TWITTER = True  # Display link to twitter or not. Use with selfie program.
 
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
@@ -28,7 +20,9 @@ async_mode = None
 app = Flask(__name__)
 app.secret_key = os.urandom(12)  # For sessions, different on each run
 socketio = SocketIO(app, async_mode=async_mode)
-socketio.on_namespace(SocketHelper('/io', socketio=socketio))
+navigation = Navigation(HUB, NUMBER_OF_WAYPOINTS)
+orders = Orders()
+socketio.on_namespace(SocketHelper('/io', socketio=socketio, navigation=navigation))
 
 
 # User pages, anyone can view.
@@ -50,6 +44,7 @@ def order_page():
 
     Show when an order is received, navigate to the hub.
     """
+    print(navigation.last_location, navigation.current_location(), navigation.target)
     if request.method == "POST":
         # Must log order before nav for correnct location
         orders.add(request.form, navigation.current_location())
@@ -138,7 +133,7 @@ def go_to_page():
                            async_mode=socketio.async_mode)
 
 
-# Non-User URLs: Handling data and navigation, hence all set to POST
+# Non-User URLs: Handling orders, hence all set to POST
 @app.route("/cancel_order", methods=["POST"])
 def cancel_order():
     """ Set order status to Cancelled """
@@ -154,35 +149,6 @@ def complete_order():
     return redirect("/", code=302)
 
 
-@app.route("/return_to_hub", methods=["POST"])
-def return_to_hub():
-    """ Called via AJAX to make LUCIE return to the hub """
-    # Run navigation in parallel to not delay UI
-    # navigation.go_to_hub()
-    return ""  # Must return a string for Flask
-
-
-@app.route("/go_to", methods=["POST"])
-def go_to():
-    """ Send LUCIE to a given destination, called in "/navigation" page """
-    # navigation.go_to(request.form['destination'])
-    return redirect("/", code=302)
-
-
-@app.route("/go_to_random", methods=["POST"])
-def go_to_random():
-    """ Send LUCIE to a random WayPoint
-
-    Useful when looking for orders in an unintelligent manner
-    """
-    if WONDERING_MODE:
-        destination = "WayPoint{}".format(choice(navigation.waypoints))
-        navigation.go_to(destination)
-    else:
-        navigation.go_to_hub()
-    return redirect("/", code=302)
-
-
 # Run program
 if __name__ == "__main__":
     try:
@@ -193,8 +159,6 @@ if __name__ == "__main__":
         menu = json.load(menu_file)['items']
     # Setup orders and navigation interfaces
     rospy.init_node('waitress_nav')
-    navigation = Navigation(HUB, NUMBER_OF_WAYPOINTS)
-    orders = Orders()
     rospy.loginfo("[WAITRESS] UI Launched at http://0.0.0.0:5000")
     # Run the app
     socketio.run(app, debug=True)  # Debug only

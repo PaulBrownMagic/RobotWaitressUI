@@ -6,23 +6,24 @@ class SocketHelper(Namespace):
 
     thread = None
 
-    def __init__(self, urlname, socketio=None):
+    def __init__(self, urlname, socketio=None, navigation=None):
         super(Namespace, self).__init__(urlname)
         self.socketio = socketio
+        self.navigation = navigation
 
     def on_return_to_hub(self):
         print("[WS] Return to Hub")
-        # navigation.go_to_hub()
+        self.navigation.go_to_hub()
         emit('my_response', {'data': "Return to Hub"})
 
     def on_go_to(self, message):
         print("[WS] Go To {}".format(message['destination']))
-        # navigation.go_to(message)
+        self.navigation.go_to(message['destination'])
         emit('my_response', {'data': "Going to {}".format(message['destination'])})
 
     def on_choose_destination(self):
         print("[WS] Go To Random")
-        # navigation.go_to(message)
+        self.navigation.go_to_random()
         emit('my_response', {'data': "Going to Random"})
 
     def on_order_complete(self, message):
@@ -56,7 +57,7 @@ def background_thread(socketio):
     """Example of how to send server generated events to clients."""
     count = 0
     while True:
-        socketio.sleep(10)
+        socketio.sleep(30)
         count += 1
         socketio.emit('my_response',
                       {'data': 'Server generated event'},
