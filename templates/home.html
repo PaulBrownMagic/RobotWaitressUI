@@ -85,6 +85,7 @@ $(document).ready(function() {
     // to the client. The data is then displayed in the "Received"
     // section of the page.
     socket.on('helper', function(msg){display_helper(msg)});
+    $('#help_button').click(function(event){socket.emit('helped')})
 
     // Handlers for the different forms in the page.
     // These accept data from the user and send it to the server in a

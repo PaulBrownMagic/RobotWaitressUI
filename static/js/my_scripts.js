@@ -9,7 +9,10 @@ function display_helper(msg) {
     $('#help_title').html(msg.title);
     $('#help_text').html(msg.text);
     if(typeof msg.button !== 'undefined'){
-    $('#help_button').html('<button type="button" class="btn btn-default" data-dismiss="modal">'+msg.button+'</button>');
+    $('#help_button').html(msg.button);
+    }
+    else {
+        $('#help_container').html("")
     }
     $('#helpModal').modal("show");
 }

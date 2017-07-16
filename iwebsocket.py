@@ -1,15 +1,20 @@
+from random import choice
+
 from flask import request
 from flask_socketio import Namespace, SocketIO, disconnect, emit
+
+import rospy
 
 
 class SocketHelper(Namespace):
 
     thread = None
 
-    def __init__(self, urlname, socketio=None, navigation=None):
+    def __init__(self, urlname, socketio=None, navigation=None, helper=None):
         super(Namespace, self).__init__(urlname)
         self.socketio = socketio
         self.navigation = navigation
+        self.helper = helper
 
     def on_return_to_hub(self):
         print("[WS] Return to Hub")
@@ -30,6 +35,9 @@ class SocketHelper(Namespace):
         print("[WS] Order {} Complete".format(message['orderId']))
         emit('my_response', {'data': "Order {} Complete".format(message['orderId'])})
 
+    def on_helped(self):
+        self.helper.helped_success()
+
     def on_my_event(self, message):
         emit('my_response', {'data': message['data']})
 
@@ -46,21 +54,17 @@ class SocketHelper(Namespace):
     def on_connect(self):
         if self.thread is None:
             self.thread = self.socketio.start_background_task(
-                target=background_thread, socketio=self.socketio)
+                target=background_thread, socketio=self.socketio, helper=self.helper)
         emit('my_response', {'data': 'Connected'})
 
     def on_disconnect(self):
         print('Client disconnected', request.sid)
 
 
-def background_thread(socketio):
+def background_thread(socketio, helper):
     """Example of how to send server generated events to clients."""
     count = 0
     while True:
         socketio.sleep(30)
-        socketio.emit('helper',
-                      dict(title='Server generated event',
-                           text='Help Text Here',
-                           button='Dismiss'
-                           ),
-                      namespace='/io')
+        failed = choice(['navigation', 'bumper', 'magnetic_strip'])
+        helper.ask_help(failed, failed, 1)

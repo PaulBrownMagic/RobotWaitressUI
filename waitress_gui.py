@@ -8,6 +8,7 @@ from flask_socketio import SocketIO
 import roslib
 import rospy
 from config import *
+from help_screen import HelpScreen
 from iwebsocket import SocketHelper, background_thread
 from navigation import Navigation
 from orders import Orders
@@ -20,9 +21,13 @@ async_mode = None
 app = Flask(__name__)
 app.secret_key = os.urandom(12)  # For sessions, different on each run
 socketio = SocketIO(app, async_mode=async_mode)
+helper = HelpScreen(socketio=socketio)
 navigation = Navigation(HUB, NUMBER_OF_WAYPOINTS)
 orders = Orders()
-socketio.on_namespace(SocketHelper('/io', socketio=socketio, navigation=navigation))
+socketio.on_namespace(SocketHelper('/io',
+                                   socketio=socketio,
+                                   navigation=navigation,
+                                   helper=helper))
 
 
 # User pages, anyone can view.

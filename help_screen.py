@@ -1,11 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import rospy
-from actionlib import SimpleActionClient
 from monitored_navigation.ui_helper import UIHelper
 from std_srvs.srv import Empty
-from strands_webserver.msg import ModalDialogSrvAction, ModalDialogSrvGoal
 
 
 class HelpScreen(UIHelper):
@@ -13,7 +10,7 @@ class HelpScreen(UIHelper):
     def __init__(self, socketio):
 
         self.socketio = socketio
-
+        self.interaction_service = None
         self.help_button = 'HELP'
         self.finish_button = 'Done'
         self.bumper_help_text = 'Help! My bumper is stuck against something. Can you help me?'
@@ -48,8 +45,7 @@ class HelpScreen(UIHelper):
         self.screen.cancel_all_goals()
 
     def generate_help_content(self, button, html, interaction_service):
-        interaction_success = rospy.ServiceProxy(
-            "/monitored_navigation/" + interaction_service, Empty)
+        self.interaction_service = interaction_service
         if button is None:
             self.socketio.emit('helper',
                                dict(title="Please help",
@@ -61,8 +57,11 @@ class HelpScreen(UIHelper):
                                     text=html,
                                     button=button),
                                namespace='/io')
-        self.screen.send_goal(goal)
-        self.screen.wait_for_result()
-        result = self.screen.get_result()
-        if result.button == button:
+
+    def helped_success(self):
+        if self.interaction_service is not None:
+            interaction_success = rospy.ServiceProxy(
+                "/monitored_navigation/" + self.interaction_service, Empty)
             interaction_success()
+        else:
+            raise ValueError("No interaction service set")
