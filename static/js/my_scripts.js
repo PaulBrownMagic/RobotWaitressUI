@@ -1,8 +1,18 @@
+var socket; // The websocket, made global.
 var hiding;  // Used to log and cancel TimeOut functions
 // Modal from decline closed, cancel timeout
 $('#dismiss').click(function(){
     clearTimeout(hiding);
 })
+
+function display_helper(msg) {
+    $('#help_title').html(msg.title);
+    $('#help_text').html(msg.text);
+    if(typeof msg.button !== 'undefined'){
+    $('#help_button').html('<button type="button" class="btn btn-default" data-dismiss="modal">'+msg.button+'</button>');
+    }
+    $('#helpModal').modal("show");
+}
 
 function change(diff, id){
     // Update values in menu

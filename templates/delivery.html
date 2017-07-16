@@ -50,7 +50,7 @@
 <script>
 $(document).ready(function(){
     namespace = '/io';
-    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+    socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
     socket.emit('go_to', {destination: "{{ order['location'] }}"});
     $('#decline').click(function(event){
         socket.emit('choose_destination');

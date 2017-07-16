@@ -22,7 +22,6 @@
 {% block scripts %}
 {{ super() }}
 <script>
-var socket;
 $(document).ready(function(){
     namespace = '/io';
     socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);

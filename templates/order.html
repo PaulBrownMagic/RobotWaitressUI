@@ -51,7 +51,7 @@
 <script>
 $(document).ready(function(){
     namespace = '/io';
-    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+    socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
     socket.emit('return_to_hub');
 });
 </script>

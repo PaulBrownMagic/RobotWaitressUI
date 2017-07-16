@@ -34,14 +34,28 @@
     </div>
     {% endif %}
     <div class="container">
-        <h2>Receive:</h2>
-        <div id="log"></div>
       <div class="page-header">
           {% block header %}
           {% endblock %}
       </div>
       {% block content %}
       {% endblock %}
+    </div>
+    <!-- Help Modal -->
+    <div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="help_title"></h4>
+          </div>
+          <div class="modal-body" id="help_text">
+          </div>
+          <div id="help_button" class="modal-footer">
+
+          </div>
+        </div>
+      </div>
     </div>
     {% block scripts %}
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
