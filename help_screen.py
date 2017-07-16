@@ -42,11 +42,11 @@ class HelpScreen(UIHelper):
         self.remove_help_content()
 
     def remove_help_content(self):
-        self.screen.cancel_all_goals()
+        pass  # Not a queue implementation so nothing to clear
 
     def generate_help_content(self, button, html, interaction_service):
-        self.interaction_service = interaction_service
-        if button is None:
+        self.interaction_service = interaction_service  # Remember it for callback (helped_success)
+        if button is None:  # Magnetic Strip Error: needs help from staff.
             self.socketio.emit('helper',
                                dict(title="Please help",
                                     text=html),

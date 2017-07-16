@@ -19,16 +19,3 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
-{{ super() }}
-<script>
-$(document).ready(function(){
-    namespace = '/io';
-    socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
-});
-function nav_to(waypoint){
-    socket.emit('go_to', {destination: waypoint});
-    $(location).attr('href',"/");
-};
-</script>
-{% endblock %}

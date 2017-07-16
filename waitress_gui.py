@@ -1,15 +1,13 @@
 #!/usr/bin/env python
-import json
 import os
 
 from flask import Flask, redirect, render_template, request, session
 from flask_socketio import SocketIO
 
-import roslib
 import rospy
-from config import *
+from config import MENU, TWITTER, HUB, NUMBER_OF_WAYPOINTS, ONE_MACHINE, PIN
 from help_screen import HelpScreen
-from iwebsocket import SocketHelper, background_thread
+from websocket import SocketHelper
 from navigation import Navigation
 from orders import Orders
 
@@ -17,16 +15,18 @@ from orders import Orders
 # different async modes, or leave it set to None for the application to choose
 # the best option based on installed packages.
 async_mode = None
-# Load in the menu
+# Create the app
 app = Flask(__name__)
 app.secret_key = os.urandom(12)  # For sessions, different on each run
+# Setup socketio for websocket and other helper classes
 socketio = SocketIO(app, async_mode=async_mode)
-helper = HelpScreen(socketio=socketio)
-navigation = Navigation(HUB, NUMBER_OF_WAYPOINTS)
-orders = Orders()
+helper = HelpScreen(socketio=socketio)  # Monitored Navigation Help
+navigation = Navigation(HUB, NUMBER_OF_WAYPOINTS)  # Topological Navigation
+orders = Orders()  # Order "model" interface
 socketio.on_namespace(SocketHelper('/io',
                                    socketio=socketio,
                                    navigation=navigation,
+                                   orders=orders,
                                    helper=helper))
 
 
@@ -38,27 +38,27 @@ def home_page():
         session['logged_in'] = True
     return render_template("home.html",
                            title="LUCIE | Menu",
-                           menu=menu,
+                           menu=MENU,
                            twitter=TWITTER,
-                           async_mode=socketio.async_mode)
+                           async_mode=socketio.async_mode
+                          )
 
 
 @app.route("/order", methods=["GET", "POST"])
 def order_page():
     """ Displays last order.
 
-    Show when an order is received, navigate to the hub.
+    Show when an order is received, navigates to the hub via websocket.
     """
-    print(navigation.last_location, navigation.current_location(), navigation.target)
     if request.method == "POST":
-        # Must log order before nav for correnct location
         orders.add(request.form, navigation.current_location())
     elif orders.empty():
         return redirect("/all_orders", code=302)
     return render_template("order.html",
                            title="LUCIE | Order",
                            order=orders.last_order(),
-                           async_mode=socketio.async_mode)
+                           async_mode=socketio.async_mode
+                          )
 
 
 @app.route("/deliver/<orderId>")
@@ -67,7 +67,8 @@ def deliver_page(orderId):
     return render_template("delivery.html",
                            title="LUCIE | Delivery",
                            order=orders.orders[orderId],
-                           async_mode=socketio.async_mode)
+                           async_mode=socketio.async_mode
+                          )
 
 
 @app.route("/twitter")
@@ -75,7 +76,7 @@ def twitter_page():
     """ Show LUCIE's twitter feed, run with Twitter 'selfie' program. """
     return render_template("twitter.html",
                            title="LUCIE | Twitter",
-                           async_mode=socketio.async_mode)
+                          )
 
 
 # Admin/Staff only pages
@@ -92,7 +93,8 @@ def login_page():
     return render_template("login.html",
                            title="LUCIE | Login",
                            error=error_msg,
-                           async_mode=socketio.async_mode)
+                           async_mode=socketio.async_mode
+                          )
 
 
 @app.route("/all_orders")
@@ -104,27 +106,29 @@ def all_orders_page():
         return render_template("all_orders.html",
                                title="LUCIE | All Orders",
                                orders=sorted(orders.orders.items()),
-                               async_mode=socketio.async_mode)
+                               async_mode=socketio.async_mode
+                              )
 
 
 @app.route("/order/<orderId>")
 def order_id_page(orderId):
     """ View an order given its ID (timestamp)
 
-    No navigation, unlike the "/order" route.
+    No navigation via websocket, unlike the "/order" route. Useful for
+    admin viewing.
     """
     if not session or not session['logged_in']:
         return redirect("/", code=302)
     try:
         order = orders.orders[orderId]  # Order exists
-    except KeyError:
-        # Order doesn't exist, other errors will still raise
+    except KeyError: # Order doesn't exist, other errors will still raise
         return redirect("/all_orders", code=302)
     return render_template("order.html",
                            title="LUCIE | Order",
                            order=order,
                            orderID=orderId,
-                           async_mode=socketio.async_mode)
+                           async_mode=socketio.async_mode
+                          )
 
 
 @app.route("/navigation")
@@ -135,7 +139,8 @@ def go_to_page():
     return render_template("go_to.html",
                            title="LUCIE | Navigation",
                            waypoints=navigation.waypoints,
-                           async_mode=socketio.async_mode)
+                           async_mode=socketio.async_mode
+                          )
 
 
 # Non-User URLs: Handling orders, hence all set to POST
@@ -156,15 +161,9 @@ def complete_order():
 
 # Run program
 if __name__ == "__main__":
-    try:
-        menu_json = os.path.join(roslib.packages.get_pkg_dir('waitress_ui'), "scripts/menu.json")
-    except:
-        menu_json = "menu.json"
-    with open(menu_json) as menu_file:
-        menu = json.load(menu_file)['items']
     # Setup orders and navigation interfaces
     rospy.init_node('waitress_nav')
     rospy.loginfo("[WAITRESS] UI Launched at http://0.0.0.0:5000")
     # Run the app
     socketio.run(app, debug=True)  # Debug only
-    # app.run(host='0.0.0.0', port=os.environ.get("PORT", 5000), processes=1)  # Production
+    # socketio.run(host='0.0.0.0', port=os.environ.get("PORT", 5000))  # Production

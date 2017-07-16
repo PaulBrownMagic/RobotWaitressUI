@@ -49,12 +49,22 @@
 {{ super() }}
 <script>
 $(document).ready(function(){
+    // Open WebSocket
     namespace = '/io';
     socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
     socket.emit('go_to', {destination: "{{ order['location'] }}"});
+
+    // Monitored Navigation Helper: Call display function. When button clicked, inform serverside
+    socket.on('helper', function(msg){display_helper(msg)});
+    $('#help_button').click(function(event){socket.emit('helped')})
+
+    // When button id=decline is clicked:
     $('#decline').click(function(event){
-        socket.emit('choose_destination');
-        $("#declineModal").modal("show");
+        socket.emit('choose_destination'); // Calls 'on_choose_destination'
+        $("#declineModal").modal("show");  // Show modal
+
+        // Use AJAX request to complete the order, handled
+        // automatically when not declined.
         var payload =  {orderId: "{{ order['timestamp'] }}"}
         $.ajax({type: 'POST', url: "/order_complete",
                 data: payload, success: function(result){
@@ -62,13 +72,13 @@ $(document).ready(function(){
                 $(location).attr('href',"/");
              }, 5000);
         }});
-        // Time out Modal that pops up, it'll hide.
+
+        // Time out Modal that pops up, it'll hide, robot is already moving away.
         hiding = window.setTimeout(function () {
             $("#declineModal").modal("hide");
         }, 5000);
         return false;
      });
 });
-
 </script>
 {% endblock %}

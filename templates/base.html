@@ -52,18 +52,30 @@
           <div class="modal-body" id="help_text">
           </div>
           <div id="help_container" class="modal-footer">
-              <button id="help_button" type="button" class="btn btn-default" data-dismiss="modal"></button>
+              <button id="help_button" type="button" class="btn btn-primary" data-dismiss="modal"></button>
           </div>
         </div>
       </div>
     </div>
-    {% block scripts %}
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.5/socket.io.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/my_scripts.js') }}"></script>
-    {% endblock %}
+     {% block scripts %}
+         <script>
+         // Standard for Monitored Navigation Helper
+             $(document).ready(function(){
+                 // Open WebSocket
+                 namespace = '/io';
+                 socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+
+                 // Monitored Navigation Helper: Call display function. When button clicked, inform serverside
+                 socket.on('helper', function(msg){display_helper(msg)});
+                 $('#help_button').click(function(event){socket.emit('helped')})
+             });
+         </script>
+     {% endblock %}
   </body>
 </html>

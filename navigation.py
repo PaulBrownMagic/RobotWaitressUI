@@ -9,11 +9,11 @@ from config import WONDERING_MODE
 class Navigation(object):
 
     def __init__(self, origin, num_of_waypoints):
-        self.waypoints = list(range(1, num_of_waypoints + 1))
-        self.hub = origin.replace(" ", "")
-        self.last_location = self.hub
-        self.target = None
-        self.in_transit = False
+        self.waypoints = list(range(1, num_of_waypoints + 1))  # List of WayPoint numbers
+        self.hub = origin.replace(" ", "")  # From CONFIG, allows setting WayPoint for HUB
+        self.last_location = self.hub  # Assume LUCIE starts at the HUB
+        self.target = None  # Where LUCIE is heading
+        self.in_transit = False  # Track when LUCIE is in motion
         # Rospy
         rospy.on_shutdown(self.clear_goals)
         self.client = actionlib.SimpleActionClient('topological_navigation',
@@ -58,7 +58,6 @@ class Navigation(object):
 
     def current_location(self):
         """ Return current location as Pose/WayPoint """
-        location = "Lost"
         if not self.in_transit:
             location = self.last_location
         else:
