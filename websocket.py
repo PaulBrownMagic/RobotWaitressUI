@@ -46,10 +46,11 @@ class SocketHelper(Namespace):
 
     def on_connect(self):
         """ Test Helper messages """
-        if self.thread is None:
-            self.thread = self.socketio.start_background_task(
-                target=background_thread, socketio=self.socketio, helper=self.helper)
-        emit('my_response', {'data': 'Connected'})
+        #if self.thread is None:
+        #    self.thread = self.socketio.start_background_task(
+        #        target=background_thread, socketio=self.socketio, helper=self.helper)
+        print('Client connected', request.sid)
+
 
     def on_disconnect(self):
         print('Client disconnected', request.sid)

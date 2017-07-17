@@ -14,10 +14,11 @@ from orders import Orders
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
 # the best option based on installed packages.
-async_mode = None
+async_mode = "eventlet"
 # Create the app
 app = Flask(__name__)
 app.secret_key = os.urandom(12)  # For sessions, different on each run
+rospy.init_node('waitress_nav')
 # Setup socketio for websocket and other helper classes
 socketio = SocketIO(app, async_mode=async_mode)
 helper = HelpScreen(socketio=socketio)  # Monitored Navigation Help
@@ -30,7 +31,6 @@ socketio.on_namespace(SocketHelper('/io',
                                    helper=helper))
 
 
-# User pages, anyone can view.
 @app.route("/")
 def home_page():
     """ Show the menu and allow a user to place an order """
@@ -162,8 +162,7 @@ def complete_order():
 # Run program
 if __name__ == "__main__":
     # Setup orders and navigation interfaces
-    rospy.init_node('waitress_nav')
     rospy.loginfo("[WAITRESS] UI Launched at http://0.0.0.0:5000")
     # Run the app
-    socketio.run(app, debug=True)  # Debug only
+    socketio.run(app, host='0.0.0.0', port=os.environ.get("PORT", 5000), debug=True)  # Debug only
     # socketio.run(host='0.0.0.0', port=os.environ.get("PORT", 5000))  # Production
