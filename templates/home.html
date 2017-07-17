@@ -25,7 +25,7 @@
     </div>
     {% endfor %}
     <button id="order" type="submit" class="btn btn-default btn-success submit col-md-6 col-sm-6">Order</button>
-    <div id="decline" class="btn btn-default btn-danger submit col-md-6 col-sm-6" data-toggle="modal" data-target="#declineModal">No Thanks</div>
+    <div id="decline" class="btn btn-default btn-danger submit col-md-6 col-sm-6">No Thanks</div>
 
  </form>
  </div>
@@ -52,14 +52,34 @@
   </div>
 </div>
 
+{% endblock %}
 
+{% block scripts %}
 <script>
-// Vanilla JavaScript (JQuery not yet loaded)
-// Ensure values match because cache
-document.addEventListener("DOMContentLoaded", function(event) {
-{% for item in menu -%}
-  document.getElementById("s {{item['name'] }}").innerHTML = document.getElementById("f {{item['name'] }}").value
- {% endfor %}
+$(document).ready(function() {
+    // Ensure displayed numbers in menu form are the same as input values.
+    {% for item in menu -%}
+      $("#s {{item['name'] }}").html($("#f {{item['name'] }}").val());
+     {% endfor %}
+    // Open Websocket
+    namespace = '/io';
+    socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+
+    // Monitored Navigation Helper: Call display function. When button clicked, inform serverside
+    socket.on('helper', function(msg){display_helper(msg)});
+    $('#help_button').click(function(event){socket.emit('helped')})
+
+    // When button id=decline is clicked:
+    $('#decline').click(function(event){
+        socket.emit('choose_destination'); // Calls 'on_choose_destination'
+        $("#declineModal").modal("show");
+        // Time out Modal that pops up, it'll hide, robot is already moving away.
+        hiding = window.setTimeout(function () {
+            $("#declineModal").modal("hide");
+            $(location).attr('href',"/");
+        }, 5000);
+        return false;
+    });
 });
 </script>
 {% endblock %}

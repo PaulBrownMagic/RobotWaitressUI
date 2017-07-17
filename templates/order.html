@@ -45,3 +45,20 @@
 </div>
 
 {% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+$(document).ready(function(){
+    // Open WebSocket
+    namespace = '/io';
+    socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+    // Return to hub
+    socket.emit('return_to_hub');
+
+    // Monitored Navigation Helper: Call display function. When button clicked, inform serverside
+    socket.on('helper', function(msg){display_helper(msg)});
+    $('#help_button').click(function(event){socket.emit('helped')})
+});
+</script>
+{% endblock %}
