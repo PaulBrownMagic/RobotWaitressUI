@@ -37,7 +37,7 @@ class Navigation(object):
             self.clear_goals()
         elif "True" in result:
             self.last_location = self.target
-            self.target = "None"
+            self.target = None
         self.in_transit = False
         print "[NAV]", result
 
