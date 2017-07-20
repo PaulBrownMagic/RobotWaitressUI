@@ -6,18 +6,6 @@ $('#dismiss').click(function(){
     clearTimeout(hiding);
 })
 
-// Display Modal to ask for Help with navigation. Template in "base.html"
-function display_helper(msg) {
-    $('#help_title').html(msg.title);
-    $('#help_text').html(msg.text);
-    if(typeof msg.button !== 'undefined'){
-    $('#help_button').html(msg.button);
-    }
-    else {
-        $('#help_container').html("")
-    }
-    $('#helpModal').modal("show");
-}
 
 // Request navigation to WayPoint, change back to homescreen as robot is moving
 function nav_to(waypoint){

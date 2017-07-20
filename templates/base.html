@@ -64,18 +64,6 @@
     <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/my_scripts.js') }}"></script>
      {% block scripts %}
-         <script>
-         // Standard for Monitored Navigation Helper
-             $(document).ready(function(){
-                 // Open WebSocket
-                 namespace = '/io';
-                 socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
-
-                 // Monitored Navigation Helper: Call display function. When button clicked, inform serverside
-                 socket.on('helper', function(msg){display_helper(msg)});
-                 $('#help_button').click(function(event){socket.emit('helped')})
-             });
-         </script>
      {% endblock %}
   </body>
 </html>

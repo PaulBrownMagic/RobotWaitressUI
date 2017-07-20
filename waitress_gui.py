@@ -5,11 +5,10 @@ from flask import Flask, redirect, render_template, request, session
 from flask_socketio import SocketIO
 
 import rospy
-from config import MENU, TWITTER, HUB, NUMBER_OF_WAYPOINTS, ONE_MACHINE, PIN
-from help_screen import HelpScreen
-from websocket import SocketHelper
+from config import HUB, MENU, NUMBER_OF_WAYPOINTS, ONE_MACHINE, PIN, TWITTER
 from navigation import Navigation
 from orders import Orders
+from websocket import SocketHelper
 
 # Set this variable to "threading", "eventlet" or "gevent" to test the
 # different async modes, or leave it set to None for the application to choose
@@ -21,14 +20,13 @@ app.secret_key = os.urandom(12)  # For sessions, different on each run
 rospy.init_node('waitress_nav')
 # Setup socketio for websocket and other helper classes
 socketio = SocketIO(app, async_mode=async_mode)
-helper = HelpScreen(socketio=socketio)  # Monitored Navigation Help
 navigation = Navigation(HUB, NUMBER_OF_WAYPOINTS)  # Topological Navigation
 orders = Orders()  # Order "model" interface
 socketio.on_namespace(SocketHelper('/io',
                                    socketio=socketio,
                                    navigation=navigation,
-                                   orders=orders,
-                                   helper=helper))
+                                   orders=orders
+                                   ))
 
 
 @app.route("/")
@@ -41,7 +39,7 @@ def home_page():
                            menu=MENU,
                            twitter=TWITTER,
                            async_mode=socketio.async_mode
-                          )
+                           )
 
 
 @app.route("/order", methods=["GET", "POST"])
@@ -58,7 +56,7 @@ def order_page():
                            title="LUCIE | Order",
                            order=orders.last_order(),
                            async_mode=socketio.async_mode
-                          )
+                           )
 
 
 @app.route("/deliver/<orderId>")
@@ -68,7 +66,7 @@ def deliver_page(orderId):
                            title="LUCIE | Delivery",
                            order=orders.orders[orderId],
                            async_mode=socketio.async_mode
-                          )
+                           )
 
 
 @app.route("/twitter")
@@ -76,7 +74,7 @@ def twitter_page():
     """ Show LUCIE's twitter feed, run with Twitter 'selfie' program. """
     return render_template("twitter.html",
                            title="LUCIE | Twitter",
-                          )
+                           )
 
 
 # Admin/Staff only pages
@@ -94,7 +92,7 @@ def login_page():
                            title="LUCIE | Login",
                            error=error_msg,
                            async_mode=socketio.async_mode
-                          )
+                           )
 
 
 @app.route("/all_orders")
@@ -107,7 +105,7 @@ def all_orders_page():
                                title="LUCIE | All Orders",
                                orders=sorted(orders.orders.items()),
                                async_mode=socketio.async_mode
-                              )
+                               )
 
 
 @app.route("/order/<orderId>")
@@ -121,14 +119,14 @@ def order_id_page(orderId):
         return redirect("/", code=302)
     try:
         order = orders.orders[orderId]  # Order exists
-    except KeyError: # Order doesn't exist, other errors will still raise
+    except KeyError:  # Order doesn't exist, other errors will still raise
         return redirect("/all_orders", code=302)
     return render_template("order.html",
                            title="LUCIE | Order",
                            order=order,
                            orderID=orderId,
                            async_mode=socketio.async_mode
-                          )
+                           )
 
 
 @app.route("/navigation")
@@ -140,7 +138,7 @@ def go_to_page():
                            title="LUCIE | Navigation",
                            waypoints=navigation.waypoints,
                            async_mode=socketio.async_mode
-                          )
+                           )
 
 
 # Non-User URLs: Handling orders, hence all set to POST

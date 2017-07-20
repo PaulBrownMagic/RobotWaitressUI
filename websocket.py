@@ -8,12 +8,11 @@ class SocketHelper(Namespace):
 
     thread = None  # Used to call background_task used to test help functions
 
-    def __init__(self, urlname, socketio=None, navigation=None, orders= None, helper=None):
+    def __init__(self, urlname, socketio=None, navigation=None, orders=None):
         super(Namespace, self).__init__(urlname)
         self.socketio = socketio
         self.navigation = navigation
         self.orders = orders
-        self.helper = helper
 
     # Incoming messages
     def on_return_to_hub(self):
@@ -36,29 +35,16 @@ class SocketHelper(Namespace):
         print("[WS] Order {} Complete".format(message['orderId']))
         self.orders.complete_order(message['orderId'])
 
-    def on_helped(self):
-        """ Let Helper know a human thinks they've helped LUCIE """
-        self.helper.helped_success()
-
     def on_disconnect_request(self):
         """ disconnect user from socket """
         disconnect()
 
     def on_connect(self):
         """ Test Helper messages """
-        #if self.thread is None:
+        # if self.thread is None:
         #    self.thread = self.socketio.start_background_task(
         #        target=background_thread, socketio=self.socketio, helper=self.helper)
         print('Client connected', request.sid)
 
-
     def on_disconnect(self):
         print('Client disconnected', request.sid)
-
-
-def background_thread(socketio, helper):
-    """ Test Helper messages """
-    while True:
-        socketio.sleep(30)
-        failed = choice(['navigation', 'bumper', 'magnetic_strip'])
-        helper.ask_help(failed, failed, 1)
