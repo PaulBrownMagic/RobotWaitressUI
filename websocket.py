@@ -6,8 +6,6 @@ from flask_socketio import Namespace, disconnect, emit
 
 class SocketHelper(Namespace):
 
-    thread = None  # Used to call background_task used to test help functions
-
     def __init__(self, urlname, socketio=None, navigation=None, orders=None):
         super(Namespace, self).__init__(urlname)
         self.socketio = socketio
@@ -40,10 +38,6 @@ class SocketHelper(Namespace):
         disconnect()
 
     def on_connect(self):
-        """ Test Helper messages """
-        # if self.thread is None:
-        #    self.thread = self.socketio.start_background_task(
-        #        target=background_thread, socketio=self.socketio, helper=self.helper)
         print('Client connected', request.sid)
 
     def on_disconnect(self):

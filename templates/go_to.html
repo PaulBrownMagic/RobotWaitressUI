@@ -19,3 +19,13 @@
 </div>
 {% endblock %}
 
+{% block scripts %}
+ <script>
+ // Standard for Monitored Navigation Helper
+     $(document).ready(function(){
+         // Open WebSocket
+         namespace = '/io';
+         socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
+     });
+ </script>
+ {% endblock %}
