@@ -12,15 +12,6 @@ from config import (HUB, MENU, NUMBER_OF_WAYPOINTS, ONE_MACHINE, PIN,
 from navigation import Navigation
 from orders import Orders
 
-# Constants
-HUB = 'WayPoint1'  # Kitchen/Food source
-NUMBER_OF_WAYPOINTS = 14
-ONE_MACHINE = True  # Only working with LUCIE, no login for admin features
-PIN = "1111"  # Not so secure Login password.
-WONDERING_MODE = True  # Randomly visit WayPoints when looking for an order
-TWITTER = True  # Display link to twitter or not. Use with selfie program.
-STRANDS_UI_URL = "127.0.0.1:5000"
-
 # Make the app!
 app = Flask(__name__)
 
@@ -33,30 +24,22 @@ def home_page():
     return render_template("home.html", title="LUCIE | Menu", menu=menu, twitter=TWITTER)
 
 
-@app.route("/navigating/hub")
-def navigating_to_hub_page():
-    return render_template("navigating.html",
-                           title="LUCIE | Moving",
-                           destination="the Hub",
-                           next_page="/order",
-                           helper_url="http://{}".format(STRANDS_UI_URL))
-
-
 @app.route("/navigating/random")
 def go_to_random():
-    """ Send LUCIE to a random WayPoint
+    """ Determine WayPoint to send LUCIE to, redirect to appropriate page.
 
     Useful when looking for orders in an unintelligent manner
     """
     if WONDERING_MODE:
         destination = "WayPoint{}".format(choice(navigation.waypoints))
     else:
-        destination = HUB  # This method will redirect to "/" on navigation complete instead of "/order"
+        destination = HUB
     return redirect("/navigating/{}".format(destination), code=302)
 
 
 @app.route("/navigating/<destination>")
 def navigating_to_page(destination):
+    """ Show navigation page, which AJAX requests actual navigation behaviour """
     return render_template("navigating.html",
                            title="LUCIE | Moving",
                            destination=destination,
@@ -66,16 +49,14 @@ def navigating_to_page(destination):
 
 @app.route("/order", methods=["POST"])
 def place_order():
+    """ Add order to store. Shows order page, which AJAX calls navigation to HUB """
     orders.add(request.form, navigation.current_location())
     return render_template("order.html", title="LUCIE | Order", order=orders.last_order())
 
 
 @app.route("/order")  # GET
 def order_page():
-    """ Displays last order.
-
-    Show once navigated to the hub.
-    """
+    """ Shows order page, which AJAX calls navigation to HUB """
     if orders.empty():
         return redirect("/all_orders", code=302)
     return render_template("order.html", title="LUCIE | Order", order=orders.last_order())
@@ -83,7 +64,7 @@ def order_page():
 
 @app.route("/deliver/<orderId>")
 def deliver_page(orderId):
-    """ Show when making a delivery, start timeout at WayPoint location """
+    """ Show when making a delivery """
     return render_template("delivery.html", title="LUCIE | Delivery", order=orders.orders[orderId])
 
 
@@ -120,7 +101,8 @@ def all_orders_page():
 def order_id_page(orderId):
     """ View an order given its ID (timestamp)
 
-    No navigation, unlike the "/order" route.
+    No navigation, unlike the "/order" route, prevented by testing for orderID
+    definition in jinja2 template "order.html" and excluding AJAX call.
     """
     if not session or not session['logged_in']:
         return redirect("/", code=302)
@@ -152,7 +134,7 @@ def cancel_order():
 def complete_order():
     """ Set order status to Complete, AJAX only call as no clear user intent."""
     orders.complete_order(request.form['orderId'])
-    return ""  # Must return a string for Flask
+    return ""  # Must return a string for Flask and successful AJAX completion
 
 
 @app.route("/go_to_hub", methods=["POST"])
@@ -160,7 +142,7 @@ def return_to_hub():
     """ Called via AJAX to make LUCIE return to the hub """
     # Run navigation in parallel to not delay UI
     navigation.go_to_hub()
-    return ""  # Must return a string for Flask
+    return ""
 
 
 @app.route("/go_to", methods=["POST"])

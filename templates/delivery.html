@@ -2,7 +2,7 @@
 
 {% block header %}
 <h1>Delivery for {{ order['location'] }} </h1>
-<p class="lead">Can I get you anything else?.</p>
+<p class="lead">Can I get you anything else?</p>
 {% endblock %}
 
 {% block content %}
@@ -46,6 +46,7 @@
 
 {% block scripts %}
 <script>
+// On page load, navigate to customer who placed the order.
 $(document).ready(function(){
     console.log("Navigating to {{ order['location'] }}")
     payload = { destination: "{{ order['location'] }}" }

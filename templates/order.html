@@ -27,13 +27,11 @@
           {% endfor %}
           {% if session['logged_in'] %}
           <p>Order placed at <strong>{{ order['timestamp'] }}</strong></p>
-
               <a href="/deliver/{{ order['timestamp'] }}" class="btn btn-default btn-success submit col-md-6 col-sm-6">Deliver</a>
               <form action="/cancel_order" method="POST">
               <input name="orderId" type="text" value="{{ order['timestamp'] }}" hidden>
               <button type="submit" class="btn btn-default btn-danger submit col-md-6 col-sm-6">Cancel Order</button>
               </form>
-
           {% endif %}
       </div>
       <hr class="featurette-divider">
@@ -47,7 +45,9 @@
 {% endblock %}
 
 {% block scripts %}
+{% if not orderID is defined %}
 <script>
+// On page load, navigate back to the HUB, with the order
 $(document).ready(function(){
     console.log("Navigating to HUB")
     $.ajax({type: 'POST',
@@ -56,4 +56,5 @@ $(document).ready(function(){
      });
  });
 </script>
+{% endif %}
 {% endblock %}

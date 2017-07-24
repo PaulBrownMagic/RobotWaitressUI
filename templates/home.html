@@ -51,15 +51,15 @@
     </div>
   </div>
 </div>
+{% endblock %}
 
-
+{% block scripts %}
 <script>
-// Vanilla JavaScript (JQuery not yet loaded)
 // Ensure values match because cache
-document.addEventListener("DOMContentLoaded", function(event) {
-{% for item in menu -%}
-  document.getElementById("s {{item['name'] }}").innerHTML = document.getElementById("f {{item['name'] }}").value
- {% endfor %}
+$(document).ready(function() {
+    {% for item in menu -%}
+    document.getElementById("s {{item['name'] }}").innerHTML = document.getElementById("f {{item['name'] }}").value
+    {% endfor %}
 });
 </script>
 {% endblock %}
