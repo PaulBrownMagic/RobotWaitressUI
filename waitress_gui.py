@@ -6,8 +6,9 @@ from random import choice
 
 from flask import Flask, redirect, render_template, request, session
 
-import roslib
 import rospy
+from config import (HUB, MENU, NUMBER_OF_WAYPOINTS, ONE_MACHINE, PIN,
+                    STRANDS_UI_URL, TWITTER, WONDERING_MODE)
 from navigation import Navigation
 from orders import Orders
 
@@ -171,13 +172,7 @@ def go_to():
 
 # Run program
 if __name__ == "__main__":
-    # Load in the menu
-    try:
-        menu_json = os.path.join(roslib.packages.get_pkg_dir('waitress_ui'), "scripts/menu.json")
-    except:
-        menu_json = "menu.json"
-    with open(menu_json) as menu_file:
-        menu = json.load(menu_file)['items']
+    menu = MENU
     # Setup orders and navigation interfaces
     rospy.init_node('waitress_nav')
     navigation = Navigation(HUB, NUMBER_OF_WAYPOINTS)
