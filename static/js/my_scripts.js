@@ -35,23 +35,30 @@ function pwd(num){
 // No Thanks button clicked
 $("#decline").click(function(){
     // Time out Modal that pops up, it'll hide. Also return to hub called
-    $.ajax({type: 'POST', url: "/go_to_random", success: function(result){
-        hiding = window.setTimeout(function () {
-            $("#declineModal").modal("hide");
-            $(location).attr('href',"/");
-        }, 5000);
-    }});
+    hiding = window.setTimeout(function () {
+        $("#declineModal").modal("hide");
+        $(location).attr('href',"/navigating/random");
+    }, 5000);
 });
 
 // Modal from decline closed, cancel timeout
 $('#dismiss').click(function(){
     clearTimeout(hiding);
+    $(location).attr('href',"/navigating/random");
 })
 
 // User has accepted their order, POST url to set order status to complete
 $(".complete").click(function(){
     var payload = {orderId: $("#orderId").html()}
     $.ajax({type: 'POST', url: "/order_complete", data: payload, success: function(result){
+        console.log("Order status: Complete");
+    }});
+});
+
+$("#reorder").click(function(){
+    var payload = {orderId: $("#orderId").html()}
+    $.ajax({type: 'POST', url: "/order_complete", data: payload, success: function(result){
+        console.log("Order status: Complete");
         $(location).attr('href',"/");
     }});
 });

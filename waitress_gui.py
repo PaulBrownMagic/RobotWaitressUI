@@ -4,9 +4,10 @@ import os
 from multiprocessing import Process
 from random import choice
 
+from flask import Flask, redirect, render_template, request, session
+
 import roslib
 import rospy
-from flask import Flask, redirect, render_template, request, session
 from navigation import Navigation
 from orders import Orders
 
@@ -17,6 +18,7 @@ ONE_MACHINE = True  # Only working with LUCIE, no login for admin features
 PIN = "1111"  # Not so secure Login password.
 WONDERING_MODE = True  # Randomly visit WayPoints when looking for an order
 TWITTER = True  # Display link to twitter or not. Use with selfie program.
+STRANDS_UI_URL = "127.0.0.1:5000"
 
 # Make the app!
 app = Flask(__name__)
@@ -30,17 +32,50 @@ def home_page():
     return render_template("home.html", title="LUCIE | Menu", menu=menu, twitter=TWITTER)
 
 
-@app.route("/order", methods=["GET", "POST"])
+@app.route("/navigating/hub")
+def navigating_to_hub_page():
+    return render_template("navigating.html",
+                           title="LUCIE | Moving",
+                           destination="the Hub",
+                           next_page="/order",
+                           helper_url="http://{}".format(STRANDS_UI_URL))
+
+
+@app.route("/navigating/random")
+def go_to_random():
+    """ Send LUCIE to a random WayPoint
+
+    Useful when looking for orders in an unintelligent manner
+    """
+    if WONDERING_MODE:
+        destination = "WayPoint{}".format(choice(navigation.waypoints))
+    else:
+        destination = HUB  # This method will redirect to "/" on navigation complete instead of "/order"
+    return redirect("/navigating/{}".format(destination), code=302)
+
+
+@app.route("/navigating/<destination>")
+def navigating_to_page(destination):
+    return render_template("navigating.html",
+                           title="LUCIE | Moving",
+                           destination=destination,
+                           next_page="/",
+                           helper_url="http://{}".format(STRANDS_UI_URL))
+
+
+@app.route("/order", methods=["POST"])
+def place_order():
+    orders.add(request.form, navigation.current_location())
+    return render_template("order.html", title="LUCIE | Order", order=orders.last_order())
+
+
+@app.route("/order")  # GET
 def order_page():
     """ Displays last order.
 
-    Show when an order is received, navigate to the hub.
+    Show once navigated to the hub.
     """
-    if request.method == "POST":
-        # Must log order before nav for correnct location
-        orders.add(request.form, navigation.current_location())
-        navigation.go_to_hub()
-    elif orders.empty():
+    if orders.empty():
         return redirect("/all_orders", code=302)
     return render_template("order.html", title="LUCIE | Order", order=orders.last_order())
 
@@ -48,7 +83,6 @@ def order_page():
 @app.route("/deliver/<orderId>")
 def deliver_page(orderId):
     """ Show when making a delivery, start timeout at WayPoint location """
-    navigation.go_to(orders.orders[orderId]['location'])
     return render_template("delivery.html", title="LUCIE | Delivery", order=orders.orders[orderId])
 
 
@@ -120,7 +154,7 @@ def complete_order():
     return ""  # Must return a string for Flask
 
 
-@app.route("/return_to_hub", methods=["POST"])
+@app.route("/go_to_hub", methods=["POST"])
 def return_to_hub():
     """ Called via AJAX to make LUCIE return to the hub """
     # Run navigation in parallel to not delay UI
@@ -132,22 +166,7 @@ def return_to_hub():
 def go_to():
     """ Send LUCIE to a given destination, called in "/navigation" page """
     navigation.go_to(request.form['destination'])
-    return redirect("/", code=302)
-
-
-@app.route("/go_to_random", methods=["POST"])
-def go_to_random():
-    """ Send LUCIE to a random WayPoint
-
-    Useful when looking for orders in an unintelligent manner
-    """
-    if WONDERING_MODE:
-        destination = "WayPoint{}".format(choice(navigation.waypoints))
-        navigation.go_to(destination)
-    else:
-        navigation.go_to_hub()
-    return redirect("/", code=302)
-
+    return ""
 
 
 # Run program

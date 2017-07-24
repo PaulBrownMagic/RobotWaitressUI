@@ -9,9 +9,7 @@
 <div class="row featurette">
     <div class="col-lg-4 list-group">
     {% for waypoint in waypoints -%}
-            <form action="/go_to" method="POST">
-                <input class="btn btn-default btn-group-justified submit list-group-item" type="submit" name="destination" value="WayPoint {{ waypoint }}">
-            </form>
+            <a href="/navigating/WayPoint{{ waypoint }}" class="btn btn-default btn-group-justified submit list-group-item">WayPoint {{ waypoint }}</a>
         {% if loop.index is divisibleby(loop.length//3 + 1) and not loop.last %}
         </div>
         <div class="col-lg-4 list-group">

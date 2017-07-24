@@ -31,7 +31,7 @@
               <a href="/deliver/{{ order['timestamp'] }}" class="btn btn-default btn-success submit col-md-6 col-sm-6">Deliver</a>
               <form action="/cancel_order" method="POST">
               <input name="orderId" type="text" value="{{ order['timestamp'] }}" hidden>
-              <button type="submit" class="btn btn-default btn-danger submit col-md-6 col-sm-6">Cancel Order</a>
+              <button type="submit" class="btn btn-default btn-danger submit col-md-6 col-sm-6">Cancel Order</button>
               </form>
 
           {% endif %}
@@ -44,4 +44,16 @@
   </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function(){
+    console.log("Navigating to HUB")
+    $.ajax({type: 'POST',
+             url: "/go_to_hub",
+         success: function(result){console.log("Navigated to HUB");}
+     });
+ });
+</script>
 {% endblock %}
