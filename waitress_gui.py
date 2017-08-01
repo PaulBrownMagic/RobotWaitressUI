@@ -149,7 +149,7 @@ def return_to_hub():
 def go_to():
     """ Send LUCIE to a given destination, called in "/navigation" page """
     navigation.go_to(request.form['destination'])
-    return True
+    return ""
 
 
 # Run program

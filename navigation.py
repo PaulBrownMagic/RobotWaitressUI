@@ -29,7 +29,6 @@ class Navigation(object):
         self.client.send_goal(navgoal)
         # Parse result
         self.client.wait_for_result()
-        print "[NAV] Waited"
         result = str(self.client.get_result())
         if "True" in result:
             self.last_location = self.target
