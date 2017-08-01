@@ -30,10 +30,15 @@ class Navigation(object):
         # Parse result
         self.client.wait_for_result()
         print "[NAV] Waited"
-        result = str(self.client.get_result())
-        if "True" in result:
+        result = self.client.get_result()
+        print "[NAV] Result type {}".format(type(result))
+        print "[NAV] Result: {}".format(result)
+        if "True" in str(result):
+            print "[NAV] TRUE"
             self.last_location = self.target
             self.target = "None"
+        else:
+            print "[NAV] FALSE"
         self.in_transit = False
         print "[NAV]", result
 

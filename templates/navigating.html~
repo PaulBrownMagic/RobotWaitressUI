@@ -24,7 +24,7 @@ $(document).ready(function(){
              success: function(result){
                  console.log("Navigated to {{ destination }}");
                  // Navigation is successful, show the next page
-                 $(location).attr('href',"/");
+                 $(location).attr('href',"{{ next_page }}");
              }
      });
  });
