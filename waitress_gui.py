@@ -152,6 +152,13 @@ def go_to():
     return ""
 
 
+@app.route("/clear_nav_goals", methods=["POST"])
+def clear_nav_goals():
+    """ Cancel all of LUCIE's navigation goals. """
+    navigation.clear_goals()
+    return ""
+
+
 # Run program
 if __name__ == "__main__":
     menu = MENU
@@ -162,5 +169,6 @@ if __name__ == "__main__":
     rospy.loginfo("[WAITRESS] UI Launched on http://0.0.0.0:5000")
     # Run the app
     app.secret_key = os.urandom(12)  # For sessions, different on each run
-    #app.run(debug=True, host='0.0.0.0', port=os.environ.get("PORT", 5000), processes=1)  # Debug only
+    # app.run(debug=True, host='0.0.0.0', port=os.environ.get("PORT", 5000),
+    # processes=1)  # Debug only
     app.run(host='0.0.0.0', port=os.environ.get("PORT", 5000), processes=1)  # Production

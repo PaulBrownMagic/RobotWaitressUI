@@ -7,14 +7,31 @@
 
 {% block content %}
 <div class="row featurette">
-    <div class="col-lg-4 list-group">
+    <div class="btn btn-danger col-sm-12 submit" id="clear_goals">Clear Navigation Goals</div>
+    <h1>Go to…</h1>
+    <div class="col-sm-4 list-group">
     {% for waypoint in waypoints -%}
             <a href="/navigating/WayPoint{{ waypoint }}" class="btn btn-default btn-group-justified submit list-group-item">WayPoint {{ waypoint }}</a>
-        {% if loop.index is divisibleby(loop.length//3 + 1) and not loop.last %}
+        {% if loop.index is divisibleby(loop.length//3) and not loop.last %}
         </div>
-        <div class="col-lg-4 list-group">
+        <div class="col-sm-4 list-group">
             {% endif %}
         {% endfor %}
         </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+$(document).ready(function(){
+    $("#clear_goals").click(function(){
+        $.ajax({type: 'POST',
+                url: "/clear_nav_goals",
+                success: function(result){
+                    console.log("Navigation goals cleared");
+                }});
+    });
+});
+</script>
 {% endblock %}

@@ -1,4 +1,4 @@
-# Constants MOVE TO CONFIG.py along with MENU
+git  # Constants MOVE TO CONFIG.py along with MENU
 MENU = [{"name": "Red Sweet", "image": "red_sweet.jpg"},
         {"name": "Green Sweet", "image": "green_sweet.jpg"},
         {"name": "Blue Sweet", "image": "blue_sweet.jpg"}
