@@ -1,10 +1,12 @@
 from random import randint
+
 from flask_socketio import Namespace
+
 import actionlib
 import rospy
 import topological_navigation.msg
-from config import WONDERING_MODE, NUMBER_OF_WAYPOINTS
 import waitress_gui
+from config import NUMBER_OF_WAYPOINTS, WONDERING_MODE
 
 
 class Navigator(Namespace):

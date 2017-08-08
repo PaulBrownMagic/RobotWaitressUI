@@ -1,9 +1,10 @@
 import json
 from datetime import datetime
 
+from flask_socketio import Namespace
+
 import rospy
 import waitress_gui
-from flask_socketio import Namespace
 
 orders = waitress_gui.ordersdb
 

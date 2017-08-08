@@ -1,20 +1,14 @@
 #!/usr/bin/env python
-import json
 import os
-from datetime import datetime
-from random import choice
 
 from flask import Flask, redirect, render_template, request, session
-from flask_socketio import Namespace, SocketIO, emit
+from flask_socketio import SocketIO
 from flask_sqlalchemy import SQLAlchemy
 
-import actionlib
-import rospy
-import topological_navigation.msg
-from config import (HUB, MENU, NUMBER_OF_WAYPOINTS, ONE_MACHINE, PIN, TWITTER,
-                    WONDERING_MODE)
-from content import ContentLoader
 import orders
+import rospy
+from config import HUB, ONE_MACHINE, PIN
+from content import ContentLoader
 from navigation import Navigator
 
 # Set this variable to "threading", "eventlet" or "gevent" to test the

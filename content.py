@@ -1,6 +1,7 @@
 from flask import render_template, session
 from flask_socketio import Namespace, emit
-from config import MENU, TWITTER, HUB, NUMBER_OF_WAYPOINTS
+
+from config import HUB, MENU, NUMBER_OF_WAYPOINTS, TWITTER
 
 
 class ContentLoader(Namespace):
