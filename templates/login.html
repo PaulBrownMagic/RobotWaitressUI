@@ -1,11 +1,9 @@
 {% extends "base.html" %}
 
-{% block header %}
+{% block main_content %}
 <h1>Login</h1>
 <p class="lead">Login to access Admin features</p>
-{% endblock %}
 
-{% block content %}
 <div class="row">
     <form action="/login" method="POST">
         {% if error %}
@@ -26,4 +24,14 @@
         <button class="btn btn-default submit col-md-12 col-sm-12" type="submit">Login</button>
     </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Work the keypad for the login page, "login.html"
+function pwd(num){
+    var pswd = $("#login_pwd").val()
+    $("#login_pwd").val(pswd + num)
+}
+</script>
 {% endblock %}

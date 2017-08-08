@@ -1,17 +1,67 @@
-var socket; // The websocket, made global.
-var hiding;  // Used to log and cancel TimeOut functions
+$(document).ready(function() {
+    // Open Websockets
+    navsocket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + '/nav');
+    contentsocket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + '/content');
+    ordersocket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + '/orders');
 
-// Modal from decline closed, cancel timeout
-$('#dismiss').click(function(){
-    clearTimeout(hiding);
-})
+    contentsocket.on('new_content', function(content){
+        $('#main_content').html(content)
+
+        // When button id=decline is clicked:
+        $('#decline').click(function(event){
+            $("#declineModal").modal("show");
+            // Time out Modal that pops up, it'll hide, robot is already moving away.
+            window.setTimeout(function () {
+                $("#declineModal").modal("hide");
+                window.setTimeout(function(){
+                    contentsocket.emit('home_nav', 'random');
+                }, 500);
+            }, 5000);
+            return false;
+        });
+
+        $('#order').click(function(){
+            ordersocket.emit('add', $("#order_form").serializeArray());
+            contentsocket.emit('last_order');
+        });
+        $('#deliver').click(function(){
+            $('#orderModal').modal('hide');
+            window.setTimeout(function(){
+                contentsocket.emit('deliver', $('#orderId').val());
+            }, 500);
+        });
+        $('#cancel').click(function(){
+            $('#orderModal').modal('hide');
+            ordersocket.emit('cancel', $('#orderId').val());
+            window.setTimeout(function(){
+                contentsocket.emit('home');
+            }, 500);
+        });
+        $('.complete').click(function(){
+            ordersocket.emit('complete', $('#orderId').val());
+        });
+        $('.home').click(function(){
+            contentsocket.emit('home');
+        });
+        $('#twitter').click(function(){
+            contentsocket.emit('twitter');
+        });
+        $('#clear_goals').click(function(){
+            navsocket.emit('clear_goals');
+        });
+    });
+    $('#all_orders').click(function(){
+        contentsocket.emit('all_orders');
+    });
+    $('#navigation').click(function(){
+        contentsocket.emit('navigation');
+    });
+});
 
 
-// Request navigation to WayPoint, change back to homescreen as robot is moving
-function nav_to(waypoint){
-    socket.emit('go_to', {destination: waypoint});
-    $(location).attr('href',"/");
-};
+function nav_to(destination){
+    contentsocket.emit('home_nav', destination);
+}
 
 // Update values in menu, used in "home.html"
 function change(diff, id){
@@ -30,17 +80,10 @@ function change(diff, id){
 function can_order() {
     var max = $(":input[type=number]").map(function(){ return this.value }).get().sort().reverse()[0]
     if (max == 0){  // max ordered is 0, therefore all values are 0
-        $('#order').prop('disabled', true);
+        $('#order').attr('disabled', true);
     }
     else {
-        $('#order').prop('disabled', false);
+        $('#order').attr('disabled', false);
+        console.log('false')
     }
-}
-// Call on page load, make sure menu items are 0
-can_order();
-
-// Work the keypad for the login page, "login.html"
-function pwd(num){
-    var pswd = $("#login_pwd").val()
-    $("#login_pwd").val(pswd + num)
 }

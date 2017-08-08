@@ -1,31 +1,16 @@
-{% extends "base.html" %}
-
-{% block header %}
 <h1>Navigation</h1>
 <p class="lead">Give LUCIE a target destination</p>
-{% endblock %}
 
-{% block content %}
 <div class="row featurette">
-    <div class="col-lg-4 list-group">
-    {% for waypoint in waypoints -%}
-            <div class="btn btn-default btn-group-justified submit list-group-item" onclick="nav_to('WayPoint {{ waypoint }}')">WayPoint {{ waypoint }}</div>
-        {% if loop.index is divisibleby(loop.length//3 + 1) and not loop.last %}
+    <div class="btn btn-danger col-sm-12 submit" id="clear_goals">Clear Navigation Goals</div>
+    <h1>Go to…</h1>
+    <div class="col-sm-4 list-group">
+    {% for _ in range(waypoints) -%}
+            <div class="btn btn-default btn-group-justified submit list-group-item" onclick="nav_to('WayPoint{{ loop.index }}')">WayPoint {{ loop.index }}</div>
+        {% if loop.index is divisibleby(loop.length//3) and not loop.last %}
         </div>
-        <div class="col-lg-4 list-group">
+        <div class="col-sm-4 list-group">
             {% endif %}
         {% endfor %}
         </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
- <script>
- // Standard for Monitored Navigation Helper
-     $(document).ready(function(){
-         // Open WebSocket
-         namespace = '/io';
-         socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
-     });
- </script>
- {% endblock %}

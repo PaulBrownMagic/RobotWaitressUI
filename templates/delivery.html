@@ -1,11 +1,6 @@
-{% extends "base.html" %}
-
-{% block header %}
 <h1>Delivery for {{ order['location'] }} </h1>
 <p class="lead">Can I get you anything else?.</p>
-{% endblock %}
 
-{% block content %}
 <div class="row">
     {% for name, quantity in order['items'].items() %}
     <div class="col-md-4 col-sm-4">
@@ -16,10 +11,8 @@
 </div>
 <hr class="featurette-divider">
   <div class="row">
-    <form action="/order_complete" method="POST">
-      <input id="orderId" name="orderId" value="{{ order['timestamp'] }}" type="text"  hidden/>
-      <button type="submit" class="btn btn-default submit col-md-12 col-sm-12 complete">Order Again</button>
-    </form>
+  <input id="orderId" name="orderId" value="{{ order['timestamp'] }}" type="text"  hidden/>
+  <div class="btn btn-default submit col-md-12 col-sm-12 complete home">Order Again</div>
   </div>
   <hr class="featurette-divider">
   <div class="row">
@@ -43,42 +36,9 @@
      </div>
    </div>
  </div>
-{% endblock %}
 
-{% block scripts %}
-{{ super() }}
+{% if destination %}
 <script>
-$(document).ready(function(){
-    // Open WebSocket
-    namespace = '/io';
-    socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
-    socket.emit('go_to', {destination: "{{ order['location'] }}"});
-
-    // Monitored Navigation Helper: Call display function. When button clicked, inform serverside
-    socket.on('helper', function(msg){display_helper(msg)});
-    $('#help_button').click(function(event){socket.emit('helped')})
-
-    // When button id=decline is clicked:
-    $('#decline').click(function(event){
-        socket.emit('choose_destination'); // Calls 'on_choose_destination'
-        $("#declineModal").modal("show");  // Show modal
-
-        // Use AJAX request to complete the order, handled
-        // automatically when not declined.
-        var payload =  {orderId: "{{ order['timestamp'] }}"}
-        $.ajax({type: 'POST', url: "/order_complete",
-                data: payload, success: function(result){
-            window.setTimeout(function(){
-                $(location).attr('href',"/");
-             }, 5000);
-        }});
-
-        // Time out Modal that pops up, it'll hide, robot is already moving away.
-        hiding = window.setTimeout(function () {
-            $("#declineModal").modal("hide");
-        }, 5000);
-        return false;
-     });
-});
+navsocket.emit('go_to', '{{ destination }}');
 </script>
-{% endblock %}
+{% endif %}

@@ -1,24 +1,18 @@
-{% extends "base.html" %}
-
-{% block header %}
 <h1>All Orders</h1>
 <p class="lead">Choose an order to see more detail</p>
-{% endblock %}
 
-{% block content %}
 {% if orders|length > 0 %}
 <table class="table table-bordered" aria-label="all orders">
     <tr><th></th><th>Time</th><th>For</th>
-        {%- for item in orders[0][1]['items'].keys() -%}
+        {%- for item in orders[0]['items'].keys() -%}
         <th>{{ item }}</th>
         {%- endfor %}<th>Status</th></tr>
     {% for order in orders -%}
-    <tr class="{{ order[1]['status'] }}"><td><a href="/order/{{ order[0] }}">View</a></td><td>{{ order[0] }}</td><td>{{ order[1]['location']}}{%- for value in order[1]['items'].values() -%}
+    <tr class="{{ order['status'] }}"><td><div class="btn" onclick="contentsocket.emit('order', '{{ order['timestamp'] }}')">View</div></td><td>{{ order['timestamp'].strftime('%H:%M:%S') }}</td><td>{{ order['location']}}{%- for value in order['items'].values() -%}
     <td>{{ value }}</td>
-    {%- endfor %}<td>{{ order[1]['status'] }}</td></tr>
+    {%- endfor %}<td>{{ order['status'] }}</td></tr>
     {% endfor %}
 </table>
 {% else %}
 <p>No orders have been placed yet for this session.</p>
 {% endif %}
-{% endblock %}

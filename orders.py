@@ -1,56 +1,81 @@
-import time
+import json
+from datetime import datetime
+
 import rospy
+import waitress_gui
+from flask_socketio import Namespace
+
+orders = waitress_gui.ordersdb
 
 
-class Orders(object):
-    """ Class to handle and log orders, uses a dictionary internally"""
+class Orders(orders.Model):
+    id = orders.Column(orders.Integer, primary_key=True)
+    items = orders.Column(orders.Text, nullable=False)
+    location = orders.Column(orders.String(16), nullable=False)
+    timestamp = orders.Column(orders.DateTime, nullable=False, default=datetime.utcnow)
+    status = orders.Column(orders.String(16), nullable=False, default="Open")
 
-    def __init__(self):
-        self.orders = {}  # Holds the log of orders
-        self.last_order_id = None  # Utility to remember last order key
-        print "[WAITRESS ORDERS] ... Init done"
+    def __init__(self, items):
+        super(Orders, self).__init__(items=json.dumps(items),
+                                     location=waitress_gui.current_location[0],
+                                     status="Open",
+                                     timestamp=datetime.utcnow())
+        self.log_order()
 
-    def add(self, order, location):
-        """ Add an item to the orders record """
-        timestamp = time.strftime("%H:%M:%S", time.localtime())  # Key as time
-        item = {'timestamp': timestamp, 'location': location,
-                'status': "Open", 'items': order}  # An "order" as a record
-        self.last_order_id = timestamp
-        self.orders[self.last_order_id] = item
-        self.log_order(self.last_order_id)
+    def __repr__(self):
+        return 'Order for {}, status is "{}"'.format(self.location, self.status)
 
-    def last_order(self):
-        """ Get the last order record """
-        return self.orders[self.last_order_id]
+    def read_items(self):
+        return json.loads(self.items)
 
-    def cancel_order(self, index):
-        """ Set a order's status to Cancelled """
-        self.orders[index]['status'] = "Cancelled"
-        self.log_order(index)
+    def read(self):
+        result = dict(id=self.id,
+                      location=self.location,
+                      timestamp=self.timestamp,
+                      status=self.status,
+                      items=self.read_items())
+        return result
 
-    def cancel_last_order(self):
-        """ Set the last order's status to Cancelled """
-        self.cancel_order(self.last_order_id)
+    def cancel(self):
+        self.status = 'Cancelled'
+        self.log_order()
 
-    def complete_order(self, index):
-        """ Set an order's status to Complete """
-        self.orders[index]['status'] = "Complete"
-        self.log_order(index)
+    def complete(self):
+        self.status = 'Complete'
+        self.log_order()
 
-    def complete_last_order(self):
-        """ Set the last order's status to Complete """
-        self.complete_order(self.last_order_id)
-
-    def empty(self):
-        """ Check if there are any orders """
-        return self.last_order_id is None
-
-    def log_order(self, index):
-        order = self.orders[index]
-        items = "[" + " ".join(["({}, {}), ".format(k, v)
-                                for k, v in order['items'].items()]).strip(" ,") + "]"
-        info = "[WAITRESS ORDER] time= {}, location= {}, status= {}, items= {}".format(order['timestamp'],
-                                                                                       order['location'],
-                                                                                       order['status'],
+    def log_order(self):
+        items = "[" + " ".join(["({}, {}), ".format(k.decode(), v)
+                                for k, v in self.read_items().items()]).strip(" ,") + "]"
+        info = "[WAITRESS ORDER] time= {}, location= {}, status= {}, items= {}".format(self.timestamp,
+                                                                                       self.location,
+                                                                                       self.status,
                                                                                        items)
         rospy.loginfo(info)
+
+
+class OrdersWS(Namespace):
+
+    def __init__(self, url_name, orders):
+        super(Namespace, self).__init__(url_name)
+        self.orders = orders
+
+    def on_add(self, order_arr):
+        order = {}
+        for item in order_arr:
+            order[item['name']] = item['value']
+        order = Orders(order)
+        self.orders.session.add(order)
+        self.orders.session.commit()
+
+    def update_status(self, order_id, status):
+        order = Orders.query.filter_by(timestamp=order_id).first()
+        order.status = status
+        order.log_order()
+        self.orders.session.commit()
+
+    def on_cancel(self, order_id):
+        self.update_status(order_id, "Cancelled")
+
+    def on_complete(self, order_id):
+        self.update_status(order_id, "Complete")

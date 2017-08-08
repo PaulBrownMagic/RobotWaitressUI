@@ -1,15 +1,16 @@
-from random import choice
-
+from random import randint
+from flask_socketio import Namespace
 import actionlib
 import rospy
 import topological_navigation.msg
-from config import WONDERING_MODE
+from config import WONDERING_MODE, NUMBER_OF_WAYPOINTS
+import waitress_gui
 
 
-class Navigation(object):
+class Navigator(Namespace):
 
-    def __init__(self, origin, num_of_waypoints):
-        self.waypoints = list(range(1, num_of_waypoints + 1))  # List of WayPoint numbers
+    def __init__(self, url_name, origin):
+        super(Namespace, self).__init__(url_name)
         self.hub = origin.replace(" ", "")  # From CONFIG, allows setting WayPoint for HUB
         self.last_location = self.hub  # Assume LUCIE starts at the HUB
         self.target = None  # Where LUCIE is heading
@@ -24,12 +25,12 @@ class Navigation(object):
     def go_to(self, location):
         """ Send command to navigate to given WayPoint """
         self.in_transit = True
-        navgoal = topological_navigation.msg.GotoNodeGoal()
+        nav_goal = topological_navigation.msg.GotoNodeGoal()
         self.target = location.replace(" ", "")
-        navgoal.target = self.target
+        nav_goal.target = self.target
         print "[NAV] Going to", self.target
         # Send goal to action server
-        self.client.send_goal(navgoal)
+        self.client.send_goal(nav_goal)
         # Parse result
         self.client.wait_for_result()
         result = self.client.get_result()
@@ -38,31 +39,43 @@ class Navigation(object):
         elif "True" in result:
             self.last_location = self.target
             self.target = None
+            waitress_gui.current_location[0] = self.last_location
         self.in_transit = False
         print "[NAV]", result
-
-    def go_to_hub(self):
-        """ Send command to go to Hub """
-        self.go_to(self.hub)
-
-    def go_to_random(self):
-        """ Send LUCIE to a random WayPoint
-
-        Useful when looking for orders in an unintelligent manner
-        """
-        if WONDERING_MODE:
-            destination = "WayPoint{}".format(choice(self.waypoints))
-            self.go_to(destination)
-        else:
-            self.go_to_hub()
-
-    def current_location(self):
-        """ Return current location as Pose/WayPoint """
-        if not self.in_transit:
-            location = self.last_location
-        else:
-            location = self.target
-        return location
+        if "False" in result:
+            self.go_to(self.hub)
 
     def clear_goals(self):
         self.client.cancel_all_goals()
+
+    # Incoming messages
+    def on_go_to_hub(self):
+        """ Ask Nav to return to hub """
+        print("[NAV] Return to Hub")
+        self.go_to(self.hub)
+
+    def on_go_to(self, destination):
+        """ Ask Nav to go to WayPoint """
+        print("[NAV] Go To {}".format(destination))
+        if destination == 'random':
+            self.on_choose_destination()
+        else:
+            self.go_to(destination)
+
+    def on_choose_destination(self):
+        """ Ask Nav to follow it's go_to_random() protocol """
+        if WONDERING_MODE:
+            destination = "WayPoint{}".format(randint(1, NUMBER_OF_WAYPOINTS))
+            self.go_to(destination)
+        else:
+            self.go_to(self.hub)
+
+    def on_clear_goals(self):
+        """ disconnect user from socket """
+        self.clear_goals()
+
+    def on_connect(self):
+        print('Client connected')
+
+    def on_disconnect(self):
+        print('Client disconnected')

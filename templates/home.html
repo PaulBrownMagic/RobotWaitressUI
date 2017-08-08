@@ -1,14 +1,8 @@
-{% extends "base.html" %}
-
-{% block header %}
 <h1>Menu</h1>
 <p class="lead">Order from LUCIE and she'll bring your sweets right to you.</p>
-{% endblock %}
 
-{% block content %}
-{# Render ordering form including heading and images of menu products #}
 <div class="row form-group">
-<form action="/order" method="POST">
+<form id="order_form", action="/order" method="POST">
 
     {% for item in menu %}
     <div class="col-md-4 col-sm-4 menu">
@@ -24,7 +18,7 @@
            title="{{ item['name'] }}" />
     </div>
     {% endfor %}
-    <button id="order" type="submit" class="btn btn-default btn-success submit col-md-6 col-sm-6">Order</button>
+    <div id="order" class="btn btn-default btn-success submit col-md-6 col-sm-6" disabled='true'>Order</div>
     <div id="decline" class="btn btn-default btn-danger submit col-md-6 col-sm-6">No Thanks</div>
 
  </form>
@@ -32,7 +26,7 @@
  <hr class="featurette-divider">
  <div class="row">
   {% if twitter %}
-  <a href="/twitter" class="btn btn-default submit col-md-12 col-sm-12">Take a selfie for Twitter</a>{% endif %}
+  <div id="twitter" class="btn btn-default submit col-md-12 col-sm-12">Take a selfie for Twitter</div>{% endif %}
  </div>
 <!-- Modal -->
 <div class="modal fade" id="declineModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
@@ -52,34 +46,17 @@
   </div>
 </div>
 
-{% endblock %}
-
-{% block scripts %}
 <script>
 $(document).ready(function() {
     // Ensure displayed numbers in menu form are the same as input values.
     {% for item in menu -%}
       $("#s {{item['name'] }}").html($("#f {{item['name'] }}").val());
      {% endfor %}
-    // Open Websocket
-    namespace = '/io';
-    socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + namespace);
-
-    // Monitored Navigation Helper: Call display function. When button clicked, inform serverside
-    socket.on('helper', function(msg){display_helper(msg)});
-    $('#help_button').click(function(event){socket.emit('helped')})
-
-    // When button id=decline is clicked:
-    $('#decline').click(function(event){
-        socket.emit('choose_destination'); // Calls 'on_choose_destination'
-        $("#declineModal").modal("show");
-        // Time out Modal that pops up, it'll hide, robot is already moving away.
-        hiding = window.setTimeout(function () {
-            $("#declineModal").modal("hide");
-            $(location).attr('href',"/");
-        }, 5000);
-        return false;
-    });
 });
 </script>
-{% endblock %}
+
+{% if destination %}
+<script>
+navsocket.emit('go_to', '{{ destination }}');
+</script>
+{% endif %}
