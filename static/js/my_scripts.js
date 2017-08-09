@@ -14,7 +14,7 @@ $(document).ready(function() {
             window.setTimeout(function () {
                 $("#declineModal").modal("hide");
                 window.setTimeout(function(){
-                    contentsocket.emit('home_nav', 'random');
+                    contentsocket.emit('home_nav', 'choose');
                 }, 500);
             }, 5000);
             return false;
@@ -84,6 +84,5 @@ function can_order() {
     }
     else {
         $('#order').attr('disabled', false);
-        console.log('false')
     }
 }
