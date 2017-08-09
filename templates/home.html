@@ -60,3 +60,19 @@ $(document).ready(function() {
 navsocket.emit('go_to', '{{ destination }}');
 </script>
 {% endif %}
+
+
+{% if timeout %}
+<script>
+    var seconds = {{ timeout }};
+    var timeout;
+
+    timeout = window.setTimeout(function(){
+        contentsocket.emit('home_nav', 'random')
+    }, 1000 * seconds);
+
+    $(document).click(function(){
+        clearTimeout(timeout);
+});
+</script>
+{% endif %}

@@ -52,9 +52,6 @@ if __name__ == "__main__":
     socketio.on_namespace(Navigator('/nav', HUB))
     socketio.on_namespace(ContentLoader('/content', orders.Orders))
     socketio.on_namespace(orders.OrdersWS('/orders', ordersdb))
-    # Setup orders and navigation interfaces
-    ordersdb.drop_all()
-    ordersdb.create_all()
     rospy.loginfo("[WAITRESS] UI Launched at http://0.0.0.0:5000")
     # Run the app
     socketio.run(app, host='0.0.0.0', port=os.environ.get("PORT", 5000), debug=True)  # Debug only

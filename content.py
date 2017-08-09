@@ -18,14 +18,16 @@ class ContentLoader(Namespace):
         """ Display the home content """
         content = render_template("home.html",
                                   menu=MENU,
-                                  twitter=TWITTER)
+                                  twitter=TWITTER,
+                                  timeout=30)
         emit('new_content', content)
 
     def on_home_nav(self, destination):
         content = render_template("home.html",
                                   destination=destination,
                                   menu=MENU,
-                                  twitter=TWITTER)
+                                  twitter=TWITTER,
+                                  timeout=30)
         emit('new_content', content)
 
     def on_last_order(self):
@@ -41,7 +43,8 @@ class ContentLoader(Namespace):
         print "Deliver", order
         content = render_template("delivery.html",
                                   order=order,
-                                  destination=order['location'])
+                                  destination=order['location'],
+                                  timeout=60)
         emit('new_content', content, broadcast=True)
 
     def on_twitter(self):

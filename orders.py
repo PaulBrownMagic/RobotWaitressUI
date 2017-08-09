@@ -80,3 +80,7 @@ class OrdersWS(Namespace):
 
     def on_complete(self, order_id):
         self.update_status(order_id, "Complete")
+
+
+orders.drop_all()
+orders.create_all()
