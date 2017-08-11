@@ -47,11 +47,19 @@ navsocket.emit('go_to', '{{ destination }}');
 <script>
     var seconds = {{ timeout }};
     var timeout;
-    timeout = window.setTimeout(function(){
-        navsocket.emit('go_to_hub');
-    }, 1000 * seconds);
+    function set_timeout() {
+        timeout = window.setTimeout(function () {
+             navsocket.emit('go_to_hub');
+        }, 1000 * seconds);
+    }
     $(document).click(function(){
         clearTimeout(timeout);
+        seconds = seconds * 2;
+        set_timeout();
+    });
+    navsocket.on('success', function(){
+        clearTimeout(timeout);
+        set_timeout();
     });
 </script>
 {% endif %}
