@@ -1,7 +1,7 @@
 from flask import render_template, session
 from flask_socketio import Namespace, emit
 
-from config import HUB, MENU, NUMBER_OF_WAYPOINTS, TWITTER
+from config import HUB, MENU, NUMBER_OF_WAYPOINTS, TWITTER, ONE_MACHINE
 
 
 class ContentLoader(Namespace):
@@ -9,6 +9,12 @@ class ContentLoader(Namespace):
     def __init__(self, url_name, orders):
         super(Namespace, self). __init__(url_name)
         self.orders = orders
+
+    def allow_timeout(self):
+        if session['logged_in'] and not ONE_MACHINE:
+            return False
+        else:
+            return True
 
     def on_connect(self):
         """ Display the home content """
@@ -23,11 +29,17 @@ class ContentLoader(Namespace):
         emit('new_content', content)
 
     def on_home_nav(self, destination):
-        content = render_template("home.html",
-                                  destination=destination,
-                                  menu=MENU,
-                                  twitter=TWITTER,
-                                  timeout=30)
+        if self.allow_timeout():
+            content = render_template("home.html",
+                                      destination=destination,
+                                      menu=MENU,
+                                      twitter=TWITTER,
+                                      timeout=30)
+        else:
+            content = render_template("home.html",
+                                      destination=destination,
+                                      menu=MENU,
+                                      twitter=TWITTER)
         emit('new_content', content)
 
     def on_last_order(self):
@@ -35,16 +47,21 @@ class ContentLoader(Namespace):
         content = render_template("order.html",
                                   order=self.orders.query.all()[-1].read(),
                                   destination=HUB)
-        emit('new_content', content)
+        emit('new_content', content, broadcast=True)
 
     def on_deliver(self, order_time):
         """ Display the delivery content """
         order = self.orders.query.filter_by(timestamp=order_time).first().read()
         print "Deliver", order
-        content = render_template("delivery.html",
-                                  order=order,
-                                  destination=order['location'],
-                                  timeout=60)
+        if self.allow_timeout():
+            content = render_template("delivery.html",
+                                      order=order,
+                                      destination=order['location'],
+                                      timeout=60)
+        else:
+            content = render_template("delivery.html",
+                                      order=order,
+                                      destination=order['location'])
         emit('new_content', content, broadcast=True)
 
     def on_twitter(self):
