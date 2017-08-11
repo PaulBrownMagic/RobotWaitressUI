@@ -18,7 +18,6 @@ async_mode = None
 # Create the app
 app = Flask(__name__)
 app.secret_key = os.urandom(12)  # For sessions, different on each run
-rospy.init_node('waitress_nav')
 # Setup socketio for websocket and other helper classes
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
 ordersdb = SQLAlchemy(app)
@@ -49,6 +48,7 @@ def home_page():
 
 # Run program
 if __name__ == "__main__":
+    rospy.init_node('waitress_nav')
     socketio.on_namespace(Navigator('/nav', HUB))
     socketio.on_namespace(ContentLoader('/content', orders.Orders))
     socketio.on_namespace(orders.OrdersWS('/orders', ordersdb))
