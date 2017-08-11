@@ -1,0 +1,16 @@
+<h1>Navigation</h1>
+<p class="lead">Give LUCIE a target destination</p>
+
+<div class="row featurette">
+    <div class="btn btn-danger col-sm-12 submit" id="clear_goals">Clear Navigation Goals</div>
+    <h1>Go to…</h1>
+    <div class="col-sm-4 list-group">
+    {% for _ in range(waypoints) -%}
+            <div class="btn btn-default btn-group-justified submit list-group-item" onclick="nav_to('WayPoint{{ loop.index }}')">WayPoint {{ loop.index }}</div>
+        {% if loop.index is divisibleby(loop.length//3) and not loop.last %}
+        </div>
+        <div class="col-sm-4 list-group">
+            {% endif %}
+        {% endfor %}
+        </div>
+</div>

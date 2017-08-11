@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block main_content %}
+<h1>Login</h1>
+<p class="lead">Login to access Admin features</p>
+
+<div class="row">
+    <form action="/login" method="POST">
+        {% if error %}
+        <div class="form-group has-error">
+            <label class="control-label" for="login_pwd">{{ error }}</label>
+            <input id="login_pwd" type="password" name="password" class="form-control" autofocus>
+        </div>
+        {% else %}
+        <input id="login_pwd" type="password" name="password" class="form-control" autofocus>
+        {% endif %}
+        <table id="pinpad" class="table table-bordered">
+            <tr><td onclick="pwd(7)">7</td><td onclick="pwd(8)">8</td><td onclick="pwd(9)">9</td></tr>
+            <tr><td onclick="pwd(4)">4</td><td onclick="pwd(5)">5</td><td onclick="pwd(6)">6</td></tr>
+            <tr><td onclick="pwd(1)">1</td><td onclick="pwd(2)">2</td><td onclick="pwd(3)">3</td></tr>
+            <tr><td></td><td onclick="pwd(0)">0</td><td></td></tr>
+        </table>
+
+        <button class="btn btn-default submit col-md-12 col-sm-12" type="submit">Login</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Work the keypad for the login page, "login.html"
+function pwd(num){
+    var pswd = $("#login_pwd").val()
+    $("#login_pwd").val(pswd + num)
+}
+</script>
+{% endblock %}

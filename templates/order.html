@@ -1,0 +1,42 @@
+<h1>Order</h1>
+<p class="lead">Delivering order to kitchen.</p>
+
+<div class="row">
+<div class="btn btn-default submit col-md-12 col-sm-12" data-toggle="modal" data-target="#orderModal">View order</div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="orderModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">Order for {{ order['location'] }}</h4>
+      </div>
+      <div class="modal-body">
+          {% for name, quantity in order['items'].items() %}
+          <div class="col-md-4 col-sm-4">
+              <h3>{{ name }}</h3>
+              <h2 class="order_value">{{ quantity }}</h2>
+          </div>
+          {% endfor %}
+          {% if session['logged_in'] %}
+          <p>Order placed at <strong>{{ order['timestamp'].strftime('%H:%M:%S') }}</strong></p>
+          <div id="deliver" class="btn btn-default btn-success submit col-sm-6">Deliver</div>
+          <div id="cancel" class="btn btn-default btn-danger submit col-sm-6">Cancel Order</div>
+          <input id="orderId" name="orderId" type="text" value="{{ order['timestamp'] }}" hidden>
+          {% endif %}
+      </div>
+      <hr class="featurette-divider">
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if destination %}
+<script>
+navsocket.emit('go_to', '{{ destination }}');
+</script>
+{% endif %}
