@@ -38,14 +38,14 @@ class Navigator(Namespace):
         result = self.client.get_result()
         if result is None:
             self.clear_goals()
-        elif "True" in result:
+        elif "True" in str(result):
             self.last_location = self.target
             self.target = None
             waitress_gui.current_location[0] = self.last_location
             emit('success')
         self.in_transit = False
         print "[NAV]", result
-        if "False" in result:
+        if "False" in str(result):
             self.go_to(self.hub)
 
     def clear_goals(self):
