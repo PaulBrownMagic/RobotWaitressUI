@@ -18,8 +18,8 @@ class ContentLoader(Namespace):
         """ Display the home content """
         content = render_template("home.html",
                                   menu=MENU,
-                                  twitter=TWITTER,
-                                  timeout=30)
+                                  twitter=TWITTER
+                                  )
         emit('new_content', content)
 
     def on_home_nav(self, destination):
