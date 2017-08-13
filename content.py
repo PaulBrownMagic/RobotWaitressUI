@@ -1,6 +1,6 @@
 from flask import render_template, session
 from flask_socketio import Namespace, emit
-
+import json
 from config import HUB, MENU, NUMBER_OF_WAYPOINTS, TWITTER, ONE_MACHINE
 
 
@@ -17,11 +17,11 @@ class ContentLoader(Namespace):
             return True
 
     def on_connect(self):
-        """ Display the home content """
+        """Display the home content."""
         self.on_home()
 
     def on_home(self):
-        """ Display the home content """
+        """Display the home content."""
         content = render_template("home.html",
                                   menu=MENU,
                                   twitter=TWITTER
@@ -43,14 +43,18 @@ class ContentLoader(Namespace):
         emit('new_content', content)
 
     def on_last_order(self):
-        """ Display the order content """
+        """Display the order content."""
+        order = self.orders.query.all()[-1].read()
         content = render_template("order.html",
-                                  order=self.orders.query.all()[-1].read(),
+                                  order=order,
                                   destination=HUB)
-        emit('new_content', content, broadcast=True)
+        emit('new_content', content)
+        order_info = {"title": "New Order",
+                      "text": "New order for {}".format(order['location'])}
+        emit('info', order_info, broadcast=True)
 
     def on_deliver(self, order_time):
-        """ Display the delivery content """
+        """Display the delivery content."""
         order = self.orders.query.filter_by(timestamp=order_time).first().read()
         print "Deliver", order
         if self.allow_timeout():
@@ -65,12 +69,12 @@ class ContentLoader(Namespace):
         emit('new_content', content, broadcast=True)
 
     def on_twitter(self):
-        """ Display the twitter content """
+        """Display the twitter content."""
         content = render_template("twitter.html")
         emit('new_content', content)
 
     def on_all_orders(self):
-        """ Admin: Display all orders view content """
+        """Admin: Display all orders view content."""
         if not session or not session['logged_in']:
             content = render_template("home.html", menu=MENU, twitter=TWITTER)
         else:
@@ -86,7 +90,7 @@ class ContentLoader(Namespace):
         emit('new_content', content)
 
     def on_navigation(self):
-        """ Admin: Display navigation content """
+        """Admin: Display navigation content."""
         if not session or not session['logged_in']:
             content = render_template("home.html", menu=MENU, twitter=TWITTER)
         else:
