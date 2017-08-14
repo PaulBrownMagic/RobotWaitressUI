@@ -61,5 +61,10 @@ navsocket.emit('go_to', '{{ destination }}');
         clearTimeout(timeout);
         set_timeout();
     });
+    {% if session['logged_in'] %}
+    contentsocket.on('cancel_timeout_on_admin', function(){
+      clearTimeout(timeout);
+    });
+    {% endif %}
 </script>
 {% endif %}

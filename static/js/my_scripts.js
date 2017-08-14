@@ -60,6 +60,11 @@ $(document).ready(function() {
     $('#navigation').click(function(){
         contentsocket.emit('navigation');
     });
+    contentsocket.on('info', function(info){
+      $('#info_title').html(info['title']);
+      $('#info_text').html(info['text']);
+      $('#infoModal').modal().show()
+    });
 });
 
 

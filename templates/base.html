@@ -36,22 +36,25 @@
     <div id="main_content" class="container">
     {% block main_content %}{% endblock %}
     </div>
-    <!-- Help Modal -->
-    <div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+
+    {% if session['logged_in'] %}
+    <!-- Info Modal -->
+    <div class="modal fade" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-            <h4 class="modal-title" id="help_title"></h4>
+            <h4 class="modal-title" id="info_title"></h4>
           </div>
-          <div class="modal-body" id="help_text">
+          <div class="modal-body" id="info_text">
           </div>
-          <div id="help_container" class="modal-footer">
-              <button id="help_button" type="button" class="btn btn-primary" data-dismiss="modal"></button>
+          <div id="info_container" class="modal-footer">
+              <button id="info_button" type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
           </div>
         </div>
       </div>
     </div>
+    {% endif %}
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
     <script type="text/javascript" src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
