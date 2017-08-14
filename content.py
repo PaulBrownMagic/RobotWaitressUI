@@ -11,7 +11,11 @@ class ContentLoader(Namespace):
         self.orders = orders
 
     def allow_timeout(self):
-        if session['logged_in'] and not ONE_MACHINE:
+        try:
+            logged_in = session['logged_in']
+        except KeyError:
+            logged_in = False
+        if logged_in and not ONE_MACHINE:
             return False
         else:
             return True
