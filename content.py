@@ -10,12 +10,6 @@ class ContentLoader(Namespace):
         super(Namespace, self). __init__(url_name)
         self.orders = orders
 
-    def allow_timeout(self):
-        if session['logged_in'] and not ONE_MACHINE:
-            return False
-        else:
-            return True
-
     def on_connect(self):
         """Display the home content."""
         self.on_home()
@@ -29,18 +23,14 @@ class ContentLoader(Namespace):
         emit('new_content', content)
 
     def on_home_nav(self, destination):
-        if self.allow_timeout():
-            content = render_template("home.html",
-                                      destination=destination,
-                                      menu=MENU,
-                                      twitter=TWITTER,
-                                      timeout=30)
-        else:
-            content = render_template("home.html",
-                                      destination=destination,
-                                      menu=MENU,
-                                      twitter=TWITTER)
+        content = render_template("home.html",
+                                  destination=destination,
+                                  menu=MENU,
+                                  twitter=TWITTER,
+                                  timeout=30)
         emit('new_content', content)
+        if not ONE_MACHINE:
+            emit('cancel_timeout_on_admin')
 
     def on_last_order(self):
         """Display the order content."""
@@ -53,20 +43,17 @@ class ContentLoader(Namespace):
                       "text": "New order for {}".format(order['location'])}
         emit('info', order_info, broadcast=True)
 
-    def on_deliver(self, order_time):
+    def on_deliver(self, time):
         """Display the delivery content."""
-        order = self.orders.query.filter_by(timestamp=order_time).first().read()
+        order = self.orders.query.filter_by(timestamp=time).first().read()
         print "Deliver", order
-        if self.allow_timeout():
-            content = render_template("delivery.html",
-                                      order=order,
-                                      destination=order['location'],
-                                      timeout=60)
-        else:
-            content = render_template("delivery.html",
-                                      order=order,
-                                      destination=order['location'])
+        content = render_template("delivery.html",
+                                  order=order,
+                                  destination=order['location'],
+                                  timeout=60)
         emit('new_content', content, broadcast=True)
+        if not ONE_MACHINE:
+            emit('cancel_timeout_on_admin')
 
     def on_twitter(self):
         """Display the twitter content."""
@@ -83,8 +70,8 @@ class ContentLoader(Namespace):
                                       orders=orders)
         emit('new_content', content)
 
-    def on_order(self, order_time):
-        order = self.orders.query.filter_by(timestamp=order_time).first().read()
+    def on_order(self, time):
+        order = self.orders.query.filter_by(timestamp=time).first().read()
         content = render_template("order.html",
                                   order=order)
         emit('new_content', content)
