@@ -81,7 +81,10 @@ navsocket.emit('go_to', '{{ destination }}');
     });
     {% if session['logged_in'] %}
     contentsocket.on('cancel_timeout_on_admin', function(){
+      console.log(timeout);
       clearTimeout(timeout);
+      console.log('Timeout Cleared');
+      console.log(timeout);
     });
     {% endif %}
 </script>
