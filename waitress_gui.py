@@ -18,9 +18,13 @@ app = Flask(__name__)
 app.secret_key = os.urandom(12)  # For sessions, different on each run
 # Setup store
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 ordersdb = SQLAlchemy(app)
 # Setup socketio
-socketio = SocketIO(app, async_mode=async_mode)
+socketio = SocketIO(app,
+                    async_mode=async_mode,
+                    ping_interval=60,
+                    ping_timeout=60*15)
 # Global in memory variable to track current location
 current_location = [HUB]  # Mutable data type required for behaviour
 

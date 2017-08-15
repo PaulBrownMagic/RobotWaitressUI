@@ -7,6 +7,9 @@ $(document).ready(function() {
     navsocket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + '/nav');
     contentsocket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + '/content');
     ordersocket = io.connect(location.protocol + '//' + document.domain + ':' + location.port + '/orders');
+    navsocket.heartbeatTimeout = 60000 * 15;
+    contentsocket.heartbeatTimeout = 60000 * 15;
+    ordersocket.heartbeatTimeout = 60000 * 15;
 
     contentsocket.on('new_content', function(content){
         $('#main_content').html(content);

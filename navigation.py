@@ -13,7 +13,7 @@ class Navigator(Namespace):
 
     def __init__(self, url_name, origin):
         super(Namespace, self).__init__(url_name)
-        self.hub = origin.replace(" ", "")  # From CONFIG, allows setting WayPoint for HUB
+        self.hub = origin.replace(" ", "")  # From CONFIG
         self.last_location = self.hub  # Assume LUCIE starts at the HUB
         self.target = None  # Where LUCIE is heading
         self.in_transit = False  # Track when LUCIE is in motion
