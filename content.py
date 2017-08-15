@@ -41,7 +41,8 @@ class ContentLoader(Namespace):
         emit('new_content', content)
         order_info = {"title": "New Order",
                       "text": "New order for {}".format(order['location'])}
-        emit('info', order_info, broadcast=True)
+        if not ONE_MACHINE:
+            emit('info', order_info, broadcast=True)
 
     def on_deliver(self, time):
         """Display the delivery content."""
