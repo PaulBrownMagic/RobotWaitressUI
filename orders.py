@@ -11,20 +11,21 @@ orders = waitress_gui.ordersdb
 
 class Orders(orders.Model):
     id = orders.Column(orders.Integer, primary_key=True)
-    items = orders.Column(orders.Text, nullable=False)
-    location = orders.Column(orders.String(16), nullable=False)
-    timestamp = orders.Column(orders.DateTime, nullable=False, default=datetime.utcnow)
-    status = orders.Column(orders.String(16), nullable=False, default="Open")
+    items = orders.Column(orders.Text)
+    location = orders.Column(orders.String(16))
+    timestamp = orders.Column(orders.DateTime, default=datetime.utcnow)
+    status = orders.Column(orders.String(16), default="Open")
 
     def __init__(self, items):
         super(Orders, self).__init__(items=json.dumps(items),
                                      location=waitress_gui.current_location[0],
                                      status="Open",
                                      timestamp=datetime.utcnow())
-        self.log_order()
+        self.log_order("RECEIVED")
 
     def __repr__(self):
-        return 'Order for {}, status is "{}"'.format(self.location, self.status)
+        return 'Order for {}, status is "{}"'.format(self.location,
+                                                     self.status)
 
     def read_items(self):
         return json.loads(self.items)
@@ -39,19 +40,24 @@ class Orders(orders.Model):
 
     def cancel(self):
         self.status = 'Cancelled'
-        self.log_order()
+        self.log_order("CANCELLED")
 
     def complete(self):
         self.status = 'Complete'
-        self.log_order()
+        self.log_order("COMPLETE")
 
-    def log_order(self):
-        items = "[" + " ".join(["({}, {}), ".format(k.decode(), v)
-                                for k, v in self.read_items().items()]).strip(" ,") + "]"
-        info = "[WAITRESS ORDER] time= {}, location= {}, status= {}, items= {}".format(self.timestamp,
-                                                                                       self.location,
-                                                                                       self.status,
-                                                                                       items)
+    def log_order(self, description):
+        items = " ".join(["({}, {}), ".format(k.decode(), v)
+                          for k, v in self.read_items().items()])
+        items = "[" + items.strip(" ,") + "]"
+        info = "[WAITRESS ORDER {}] time= {}, \
+                                    location= {}, \
+                                    status= {}, \
+                                    items= {}".format(description,
+                                                      self.timestamp,
+                                                      self.location,
+                                                      self.status,
+                                                      items)
         rospy.loginfo(info)
 
 

@@ -18,7 +18,7 @@ app = Flask(__name__)
 app.secret_key = os.urandom(12)  # For sessions, different on each run
 # Setup store
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Mute warning
 ordersdb = SQLAlchemy(app)
 # Setup socketio
 socketio = SocketIO(app,

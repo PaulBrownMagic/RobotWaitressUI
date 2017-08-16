@@ -12,6 +12,8 @@ class ContentLoader(Namespace):
 
     def on_connect(self):
         """Display the home content."""
+        rospy.loginfo("Client connected to Websocket")
+        print('Client connected')
         self.on_home()
 
     def on_home(self):
@@ -85,3 +87,7 @@ class ContentLoader(Namespace):
             content = render_template("go_to.html",
                                       waypoints=NUMBER_OF_WAYPOINTS)
             emit('new_content', content)
+
+    def on_disconnect(self):
+        rospy.loginfo("Client disconnected from Websocket")
+        print('Client disconnected')

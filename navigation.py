@@ -6,7 +6,7 @@ import actionlib
 import rospy
 import topological_navigation.msg
 import waitress_gui
-from config import NUMBER_OF_WAYPOINTS, NAVIGATING_MODE
+from config import NUMBER_OF_WAYPOINTS, NAVIGATING_MODE, HUB
 
 
 class Navigator(Namespace):
@@ -19,8 +19,9 @@ class Navigator(Namespace):
         self.in_transit = False  # Track when LUCIE is in motion
         # Rospy
         rospy.on_shutdown(self.clear_goals)
+        msg = topological_navigation.msg.GotoNodeAction
         self.client = actionlib.SimpleActionClient('topological_navigation',
-                                                   topological_navigation.msg.GotoNodeAction)
+                                                   msg)
         self.client.wait_for_server()
         print "[NAV] ... Init done"
 
@@ -40,6 +41,8 @@ class Navigator(Namespace):
             self.clear_goals()
         elif "True" in str(result):
             self.last_location = self.target
+            info = "[NAV] Success, current location: {}".format(self.target)
+            rospy.loginfo(info)
             self.target = None
             waitress_gui.current_location[0] = self.last_location
             emit('success')
@@ -47,6 +50,7 @@ class Navigator(Namespace):
         print "[NAV]", result
         if "False" in str(result):
             self.go_to(self.hub)
+            rospy.loginfo("[NAV] Failed: Return to Hub")
 
     def clear_goals(self):
         self.client.cancel_all_goals()
@@ -55,11 +59,13 @@ class Navigator(Namespace):
     def on_go_to_hub(self):
         """ Ask Nav to return to hub """
         print("[NAV] Return to Hub")
+        rospy.loginfo("[NAV] Requesting navigation to Hub ({})".format(HUB))
         self.go_to(self.hub)
 
     def on_go_to(self, destination):
         """ Ask Nav to go to WayPoint """
         print("[NAV] Go To {}".format(destination))
+        rospy.loginfo("[NAV] Requesting navigation to {}".format(destination))
         if destination == 'choose':
             self.on_choose_destination()
         else:
@@ -78,27 +84,23 @@ class Navigator(Namespace):
         self.go_to(destination)
 
     def increment_waypoint(self):
-        current_waypoint = int(self.last_location.split('t')[-1])
-        next_waypoint = current_waypoint + 1 if current_waypoint != NUMBER_OF_WAYPOINTS else 1
-        if "WayPoint{}".format(next_waypoint) == self.hub:
-            next_waypoint = next_waypoint + 1 if next_waypoint != NUMBER_OF_WAYPOINTS else 1
-        return next_waypoint
+        current_wp = int(self.last_location.split('t')[-1])
+        next_wp = current_wp + 1 if current_wp != NUMBER_OF_WAYPOINTS else 1
+        if "WayPoint{}".format(next_wp) == self.hub:
+            next_wp = next_wp + 1 if next_wp != NUMBER_OF_WAYPOINTS else 1
+        return next_wp
 
     def not_visited_waypoint(self):
         try:
             return next(self.waypoints)
-        except:
+        except StopIteration:
             points = [p + 1 for p in range(NUMBER_OF_WAYPOINTS)]
             shuffle(points)
-            self.waypoints = (p for p in points if "WayPoint{}".format(p) != self.hub)
+            self.waypoints = (p for p in points
+                              if "WayPoint{}".format(p) != self.hub)
             return next(self.waypoints)
 
     def on_clear_goals(self):
         """ disconnect user from socket """
+        rospy.loginfo("[NAV] All goals cleared")
         self.clear_goals()
-
-    def on_connect(self):
-        print('Client connected')
-
-    def on_disconnect(self):
-        print('Client disconnected')
