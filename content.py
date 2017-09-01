@@ -2,7 +2,7 @@ from flask import render_template, session
 from flask_socketio import Namespace, emit
 import json
 from config import HUB, MENU, NUMBER_OF_WAYPOINTS, TWITTER, ONE_MACHINE
-
+import rospy
 
 class ContentLoader(Namespace):
 

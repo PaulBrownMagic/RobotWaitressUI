@@ -94,11 +94,18 @@ class Navigator(Namespace):
         try:
             return next(self.waypoints)
         except StopIteration:
-            points = [p + 1 for p in range(NUMBER_OF_WAYPOINTS)]
-            shuffle(points)
-            self.waypoints = (p for p in points
-                              if "WayPoint{}".format(p) != self.hub)
+            self.generate_waypoints()
             return next(self.waypoints)
+        except AttributeError:
+            self.generate_waypoints()
+            return next(self.waypoints)
+
+
+    def generate_waypoints(self):
+        points = [p + 1 for p in range(NUMBER_OF_WAYPOINTS)]
+        shuffle(points)
+        self.waypoints = (p for p in points
+                          if "WayPoint{}".format(p) != self.hub)
 
     def on_clear_goals(self):
         """ disconnect user from socket """

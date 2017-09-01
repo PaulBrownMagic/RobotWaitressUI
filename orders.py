@@ -78,7 +78,7 @@ class OrdersWS(Namespace):
     def update_status(self, order_id, status):
         order = Orders.query.filter_by(timestamp=order_id).first()
         order.status = status
-        order.log_order()
+        order.log_order(status)
         self.orders.session.commit()
 
     def on_cancel(self, order_id):
