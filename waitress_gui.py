@@ -17,7 +17,8 @@ async_mode = None  # Manually config: threading, eventlet or gevent. Else None
 app = Flask(__name__)
 app.secret_key = os.urandom(12)  # For sessions, different on each run
 # Setup store
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/test.db'
+DB_PATH = os.path.join(os.path.expanduser("~"), "Waitress", "openday.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////{}'.format(DB_PATH)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Mute warning
 ordersdb = SQLAlchemy(app)
 # Setup socketio

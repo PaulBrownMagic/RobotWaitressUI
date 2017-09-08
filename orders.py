@@ -88,5 +88,5 @@ class OrdersWS(Namespace):
         self.update_status(order_id, "Complete")
 
 
-orders.drop_all()
+#  orders.drop_all()
 orders.create_all()
