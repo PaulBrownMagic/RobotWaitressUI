@@ -17,7 +17,7 @@ async_mode = None  # Manually config: threading, eventlet or gevent. Else None
 app = Flask(__name__)
 app.secret_key = os.urandom(12)  # For sessions, different on each run
 # Setup store
-DB_PATH = os.path.join(os.path.expanduser("~"), "Waitress", "openday.db")
+DB_PATH = os.path.expanduser(os.path.join("~", "Waitress", "openday.db"))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////{}'.format(DB_PATH)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Mute warning
 ordersdb = SQLAlchemy(app)
@@ -55,12 +55,23 @@ def home_page():
                            async_mode=socketio.async_mode)
 
 
+@app.route("/opinions")
+def opinions():
+    """Admin: Display all orders view content."""
+    if not session or not session['logged_in']:
+        content = render_template("home.html", menu=MENU, twitter=TWITTER)
+    else:
+        opinions = orders.Opinion.query.all()
+        content = str(opinions)
+    return content
+
+
 # Run program
 if __name__ == "__main__":
     rospy.init_node('waitress_nav')
     socketio.on_namespace(Navigator('/nav', HUB))
     socketio.on_namespace(ContentLoader('/content', orders.Orders))
-    socketio.on_namespace(orders.OrdersWS('/orders', ordersdb))
+    socketio.on_namespace(orders.OrdersWS('/orders'))
     rospy.loginfo("[WAITRESS] UI Launched at http://0.0.0.0:5000")
     # Run the app
     socketio.run(app,

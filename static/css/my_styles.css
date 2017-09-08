@@ -57,3 +57,21 @@ tr {
 #pinpad {
     text-align:center;
 }
+
+/* Include opinion_form */
+.form-check {
+  margin-left: 20px;
+}
+
+.form-check label {
+  font-size: 21px;
+  font-weight: 300;
+  line-height: 1.4;
+  margin: 10px;
+  display: block;
+}
+
+input[type="checkbox"] {
+  transform:scale(2, 2);
+  margin-right: 10px !important;
+}

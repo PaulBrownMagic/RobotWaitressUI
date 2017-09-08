@@ -1,5 +1,7 @@
 <h1>Delivery for {{ order['location'] }} </h1>
-<p class="lead">Can I get you anything else?.</p>
+{% include "includes/opinion_form.html" %}
+
+<p class="lead">Can I get you anything else?</p>
 
 <div class="row">
     {% for name, quantity in order['items'].items() %}

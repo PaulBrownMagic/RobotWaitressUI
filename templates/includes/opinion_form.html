@@ -1,0 +1,38 @@
+<div id="questions">
+  <h2>What do you think about robot wait-staff?</h2>
+  <form id="opinion_form" action="/opinions" method="post">
+    <div class="form-group">
+      <div class="form-check">
+        <label class="form-check-label">
+          <input type="checkbox" name="opinion" class="form-check-input" value="a">  I can't wait until robots are everywhere.
+        </label>
+        <label class="form-check-label">
+          <input type="checkbox" name="opinion" class="form-check-input" value="b">  They're exciting and fun.
+        </label>
+        <label class="form-check-label">
+          <input type="checkbox" name="opinion" class="form-check-input" value="c">  I don't mind, so long as I get my food.
+        </label>
+        <label class="form-check-label">
+          <input type="checkbox" name="opinion" class="form-check-input" value="d">  Not as good as real people.
+        </label>
+        <label class="form-check-label">
+          <input type="checkbox" name="opinion" class="form-check-input" value="e">  They'll steal people's jobs.
+        </label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="comment">Any other comments?</label>
+      <textarea id="comment" class="form-control" rows="4" name="other" placeholder="Enter text here..."></textarea>
+    </div>
+    <div id="submit_opinion" class="btn btn-primary submit col-sm-12">Submit</div>
+  </form>
+</div>
+<script>
+$('#submit_opinion').click(function(){
+  console.log("submit");
+  ordersocket.emit("opinion_submitted", $("#opinion_form").serializeArray());
+});
+ordersocket.on('got_opinion', function(){
+  $("#questions").html("<h3>Thank you!</h3>");
+});
+</script>

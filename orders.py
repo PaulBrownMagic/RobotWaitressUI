@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 
-from flask_socketio import Namespace
+from flask_socketio import Namespace, emit
 
 import rospy
 import waitress_gui
@@ -61,25 +61,45 @@ class Orders(orders.Model):
         rospy.loginfo(info)
 
 
+class Opinion(orders.Model):
+    id = orders.Column(orders.Integer, primary_key=True)
+    a = orders.Column(orders.Boolean)
+    b = orders.Column(orders.Boolean)
+    c = orders.Column(orders.Boolean)
+    d = orders.Column(orders.Boolean)
+    e = orders.Column(orders.Boolean)
+    comment = orders.Column(orders.Text)
+
+    def __repr__(self):
+        return "[pk:{}. a:{}, b:{}, c:{}, d:{}, e:{}, comment:{}], ".format(
+            self.id,
+            self.a,
+            self.b,
+            self.c,
+            self.d,
+            self.e,
+            self.comment)
+
+
 class OrdersWS(Namespace):
 
-    def __init__(self, url_name, orders):
+    def __init__(self, url_name):
         super(Namespace, self).__init__(url_name)
-        self.orders = orders
+
 
     def on_add(self, order_arr):
         order = {}
         for item in order_arr:
             order[item['name']] = item['value']
         order = Orders(order)
-        self.orders.session.add(order)
-        self.orders.session.commit()
+        orders.session.add(order)
+        orders.session.commit()
 
     def update_status(self, order_id, status):
         order = Orders.query.filter_by(timestamp=order_id).first()
         order.status = status
         order.log_order(status)
-        self.orders.session.commit()
+        orders.session.commit()
 
     def on_cancel(self, order_id):
         self.update_status(order_id, "Cancelled")
@@ -87,6 +107,26 @@ class OrdersWS(Namespace):
     def on_complete(self, order_id):
         self.update_status(order_id, "Complete")
 
+    def on_opinion_submitted(self, opinion_arr):
+        print opinion_arr
+        opinions = []
+        for inpt in opinion_arr:
+            if inpt['name'] == "opinion":
+                opinions.append(inpt['value'])
+            elif inpt['value'] == '':
+                comment = None
+            else:
+                comment = inpt['value']
+        opinion = Opinion(a="a" in opinions,
+                          b="b" in opinions,
+                          c="c" in opinions,
+                          d="d" in opinions,
+                          e="e" in opinions,
+                          comment=comment)
+        orders.session.add(opinion)
+        orders.session.commit()
+        emit("got_opinion")
 
-#  orders.drop_all()
+
+orders.drop_all()
 orders.create_all()

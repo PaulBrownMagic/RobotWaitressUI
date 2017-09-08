@@ -88,6 +88,7 @@ class ContentLoader(Namespace):
                                       waypoints=NUMBER_OF_WAYPOINTS)
             emit('new_content', content)
 
+
     def on_disconnect(self):
         rospy.loginfo("Client disconnected from Websocket")
         print('Client disconnected')
