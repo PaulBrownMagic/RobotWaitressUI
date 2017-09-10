@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""Entry point to Waitressing Application."""
 import os
 
 from flask import Flask, redirect, render_template, request, session
@@ -11,21 +12,20 @@ from config import HUB, ONE_MACHINE, PIN
 from content import ContentLoader
 from navigation import Navigator
 
-
 async_mode = None  # Manually config: threading, eventlet or gevent. Else None
 # Create the app
 app = Flask(__name__)
 app.secret_key = os.urandom(12)  # For sessions, different on each run
-# Setup store
+# Setup database persitent storage
 DB_PATH = os.path.expanduser(os.path.join("~", "Waitress", "openday.db"))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////{}'.format(DB_PATH)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Mute warning
 ordersdb = SQLAlchemy(app)
-# Setup socketio
+# Setup socketio for WebSockets.
 socketio = SocketIO(app,
                     async_mode=async_mode,
                     ping_interval=60,
-                    ping_timeout=60*15)
+                    ping_timeout=60*15)  # Extend timeout.
 # Global in memory variable to track current location
 current_location = [HUB]  # Mutable data type required for behaviour
 
@@ -57,7 +57,7 @@ def home_page():
 
 @app.route("/opinions")
 def opinions():
-    """Admin: Display all orders view content."""
+    """Admin: Display all opinions as raw string."""
     if not session or not session['logged_in']:
         content = render_template("home.html", menu=MENU, twitter=TWITTER)
     else:
@@ -68,14 +68,16 @@ def opinions():
 
 # Run program
 if __name__ == "__main__":
+    # Register as node with ROS
     rospy.init_node('waitress_nav')
+    # Instantiate WebSockets
     socketio.on_namespace(Navigator('/nav', HUB))
     socketio.on_namespace(ContentLoader('/content', orders.Orders))
     socketio.on_namespace(orders.OrdersWS('/orders'))
+    # Log and run the app
     rospy.loginfo("[WAITRESS] UI Launched at http://0.0.0.0:5000")
-    # Run the app
     socketio.run(app,
-                 host='0.0.0.0',
+                 host='0.0.0.0',  # host 0.0.0.0 is visable on LAN.
                  port=os.environ.get("PORT", 5000),
                  debug=True)  # Debug only
 #    socketio.run(app,

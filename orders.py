@@ -1,3 +1,4 @@
+"""Interface for Order logging and persistence."""
 import json
 from datetime import datetime
 
@@ -10,6 +11,8 @@ orders = waitress_gui.ordersdb
 
 
 class Orders(orders.Model):
+    """Database model for an Order."""
+
     id = orders.Column(orders.Integer, primary_key=True)
     items = orders.Column(orders.Text)
     location = orders.Column(orders.String(16))
@@ -17,6 +20,7 @@ class Orders(orders.Model):
     status = orders.Column(orders.String(16), default="Open")
 
     def __init__(self, items):
+        """Create an instance of an order record."""
         super(Orders, self).__init__(items=json.dumps(items),
                                      location=waitress_gui.current_location[0],
                                      status="Open",
@@ -24,13 +28,16 @@ class Orders(orders.Model):
         self.log_order("RECEIVED")
 
     def __repr__(self):
+        """Provide a readable string representation of an order."""
         return 'Order for {}, status is "{}"'.format(self.location,
                                                      self.status)
 
     def read_items(self):
+        """Convert times from JSON string to Python dict."""
         return json.loads(self.items)
 
     def read(self):
+        """Convert record into Python format for easy manipulation."""
         result = dict(id=self.id,
                       location=self.location,
                       timestamp=self.timestamp,
@@ -39,14 +46,17 @@ class Orders(orders.Model):
         return result
 
     def cancel(self):
+        """Update record status to 'Cancelled'."""
         self.status = 'Cancelled'
         self.log_order("CANCELLED")
 
     def complete(self):
+        """Update record status to 'Complete'."""
         self.status = 'Complete'
         self.log_order("COMPLETE")
 
     def log_order(self, description):
+        """Log an order."""
         items = " ".join(["({}, {}), ".format(k.decode(), v)
                           for k, v in self.read_items().items()])
         items = "[" + items.strip(" ,") + "]"
@@ -62,6 +72,8 @@ class Orders(orders.Model):
 
 
 class Opinion(orders.Model):
+    """Database model for an Opinion, used for survey."""
+
     id = orders.Column(orders.Integer, primary_key=True)
     a = orders.Column(orders.Boolean)
     b = orders.Column(orders.Boolean)
@@ -71,6 +83,7 @@ class Opinion(orders.Model):
     comment = orders.Column(orders.Text)
 
     def __repr__(self):
+        """Provide a string representation of an opinion."""
         return "[pk:{}. a:{}, b:{}, c:{}, d:{}, e:{}, comment:{}], ".format(
             self.id,
             self.a,
@@ -82,12 +95,14 @@ class Opinion(orders.Model):
 
 
 class OrdersWS(Namespace):
+    """Interface between UI, via WebSocket, and Orders database."""
 
     def __init__(self, url_name):
+        """Establish itself as a Namespace for WebSockets."""
         super(Namespace, self).__init__(url_name)
 
-
     def on_add(self, order_arr):
+        """Add a new Order record to the database."""
         order = {}
         for item in order_arr:
             order[item['name']] = item['value']
@@ -96,19 +111,22 @@ class OrdersWS(Namespace):
         orders.session.commit()
 
     def update_status(self, order_id, status):
+        """Change the status of a given order to a given status."""
         order = Orders.query.filter_by(timestamp=order_id).first()
         order.status = status
         order.log_order(status)
         orders.session.commit()
 
     def on_cancel(self, order_id):
+        """Set a given order's status to 'Cancelled'."""
         self.update_status(order_id, "Cancelled")
 
     def on_complete(self, order_id):
+        """Set a given order's status to 'Complete'."""
         self.update_status(order_id, "Complete")
 
     def on_opinion_submitted(self, opinion_arr):
-        print opinion_arr
+        """Add a new Opinion record to the database."""
         opinions = []
         for inpt in opinion_arr:
             if inpt['name'] == "opinion":
@@ -128,5 +146,6 @@ class OrdersWS(Namespace):
         emit("got_opinion")
 
 
-orders.drop_all()
+"""Uncomment as appropriate."""
+# orders.drop_all()
 orders.create_all()

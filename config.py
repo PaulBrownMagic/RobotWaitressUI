@@ -1,4 +1,7 @@
-# Constants MOVE TO CONFIG.py along with MENU
+"""Configurable constants for Application."""
+
+# MENU['name'] will be displayed in HTML
+# MENU['image'] is expected in static/images, square images look best.
 MENU = [{"name": "Red Sweet", "image": "red_sweet.jpg"},
         {"name": "Green Sweet", "image": "green_sweet.jpg"},
         {"name": "Blue Sweet", "image": "blue_sweet.jpg"}
